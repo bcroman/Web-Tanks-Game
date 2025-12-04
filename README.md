@@ -2,10 +2,11 @@
 Web Programming Assessment - Multiplayer Game
 
 # Requirment 
-npm init  - Node server  
-npm install express - Web Server
-npm install socket.io - websockets for multiplayer
-npm install nodemon - server restart  
+npm init - Node Server  
+npm install express - Web Server  
+npm install socket.io - Websockets for Multiplayer  
+npm install nodemon - Server Restart  
+npm install box2dweb-commonjs  Game Engine
 
 # Setup Game Server
 In Terminal, run the command 'npm run setup' which will install the needed libraries  

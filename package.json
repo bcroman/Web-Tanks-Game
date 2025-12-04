@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "setup": "npm install express socket.io  nodemon",
+    "setup": "npm install express socket.io nodemon box2dweb-commonjs",
     "start": "nodemon index.js"
   },
   "repository": {
@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/bcroman/Web-Tanks-Game#readme",
   "dependencies": {
+    "box2dweb-commonjs": "^2.1.0",
     "express": "^5.2.1",
     "nodemon": "^3.1.11",
     "socket.io": "^4.8.1"
