@@ -1,0 +1,19 @@
+{
+  "name": "web-tanks-game",
+  "version": "1.0.0",
+  "description": "Web Programming Assessment - Multiplayer Game",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcroman/Web-Tanks-Game.git"
+  },
+  "author": "Ben Collins",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bcroman/Web-Tanks-Game/issues"
+  },
+  "homepage": "https://github.com/bcroman/Web-Tanks-Game#readme"
+}
