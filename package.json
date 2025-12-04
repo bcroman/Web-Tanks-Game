@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "setup": "npm install express socket.io"
+    "setup": "npm install express socket.io  nodemon",
+    "start": "nodemon index.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +20,7 @@
   "homepage": "https://github.com/bcroman/Web-Tanks-Game#readme",
   "dependencies": {
     "express": "^5.2.1",
+    "nodemon": "^3.1.11",
     "socket.io": "^4.8.1"
   }
 }

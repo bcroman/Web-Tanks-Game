@@ -5,6 +5,7 @@ Web Programming Assessment - Multiplayer Game
 npm init  - Node server  
 npm install express - Web Server
 npm install socket.io - websockets for multiplayer
+npm install nodemon - server restart  
 
 # Setup Game Server
 In Terminal, run the command 'npm run setup' which will install the needed libraries  
