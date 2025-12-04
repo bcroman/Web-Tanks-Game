@@ -1,5 +1,6 @@
 // Server Configurations
 'use strict';
+const { create } = require('domain');
 const express = require('express');
 const app = express();
 const http = require('http').Server(app);
@@ -30,12 +31,16 @@ const HEIGHT = 600;
 let fps = 30;
 let interval;
 
+// Store objects
+let staticObjects = [];
+let dynamicObjects = [];
+
 // Function to create a static box
-function createStaticBox(x, y, width, height, objid, density = 1, friction = 0.5, restitution = 0.2) {
+function createStaticBox(x, y, width, height, objid) {
     let fixDef = new b2FixtureDef();
-    fixDef.density = density;
-    fixDef.friction = friction;
-    fixDef.restitution = restitution;
+    fixDef.density = 1;
+    fixDef.friction = 0.5;
+    fixDef.restitution = 0.2;
 
     let bodyDef = new b2BodyDef();
     bodyDef.type = b2Body.b2_staticBody;
@@ -47,15 +52,17 @@ function createStaticBox(x, y, width, height, objid, density = 1, friction = 0.5
     let fix = world.CreateBody(bodyDef).CreateFixture(fixDef);
     fix.GetBody().SetUserData({ id: objid, type: "static" });
 
+    staticObjects.push({ objid, x, y, width, height, type: "static" });
+
     return fix;
 }
 
 // Function to create a dynamic box
-function createDynamicBox(x, y, width, height, objid, density = 1, friction = 0.5, restitution = 0.2) {
+function createDynamicBox(x, y, width, height, objid) {
     let fixDef = new b2FixtureDef();
-    fixDef.density = density;
-    fixDef.friction = friction;
-    fixDef.restitution = restitution;
+    fixDef.density = 1;
+    fixDef.friction = 0.5;
+    fixDef.restitution = 0.2;
 
     let bodyDef = new b2BodyDef();
     bodyDef.type = b2Body.b2_dynamicBody;
@@ -65,17 +72,26 @@ function createDynamicBox(x, y, width, height, objid, density = 1, friction = 0.
     fixDef.shape.SetAsBox((width / SCALE) / 2, (height / SCALE) / 2);
 
     let fix = world.CreateBody(bodyDef).CreateFixture(fixDef);
-    fix.GetBody().SetUserData({ id: objid, type: "dynamic" });
+
+    fix.GetBody().SetUserData({ objid, type: "dynamic" });
+
+    dynamicObjects.push({
+        id: objid,
+        width: width,
+        height: height,
+        body: fix.GetBody(),
+        type: "dynamic"
+    });
 
     return fix;
 }
 
 // Function to create a dynamic circle
-function createDynamicCircle(x, y, radius, objid, density = 1, friction = 0.5, restitution = 0.2) {
+function createDynamicCircle(x, y, radius, objid) {
     let fixDef = new b2FixtureDef();
-    fixDef.density = density;
-    fixDef.friction = friction;
-    fixDef.restitution = restitution;
+    fixDef.density = 1;
+    fixDef.friction = 0.5;
+    fixDef.restitution = 0.2;
 
     let bodyDef = new b2BodyDef();
     bodyDef.type = b2Body.b2_dynamicBody;
@@ -84,7 +100,16 @@ function createDynamicCircle(x, y, radius, objid, density = 1, friction = 0.5, r
     fixDef.shape = new b2CircleShape(radius / SCALE);
 
     let fix = world.CreateBody(bodyDef).CreateFixture(fixDef);
-    fix.GetBody().SetUserData({ id: objid, type: "bullet" });
+    fix.GetBody().SetUserData({ id: objid, type: "circle" });
+
+    dynamicObjects.push({
+        id: objid,
+        radius: radius,
+        width: radius * 2,
+        height: radius * 2,
+        body: fix.GetBody(),
+        type: "circle"
+    });
 
     return fix;
 }
@@ -102,6 +127,15 @@ function init() {
         true               //allow sleep
     );
 
+    // Create Static Objects
+    createStaticBox(WIDTH / 2, HEIGHT - 10, WIDTH, 20, 'ground');
+    createStaticBox(50, HEIGHT / 2, 20, HEIGHT, 'leftWall');
+    createStaticBox(WIDTH - 50, HEIGHT / 2, 20, HEIGHT, 'rightWall');
+    createStaticBox(WIDTH / 2, 50, WIDTH, 20, 'ceiling');
+
+    createDynamicBox(WIDTH / 2, 200, 40, 40, "box1");
+    createDynamicCircle(WIDTH / 2 + 100, 100, 20, "circle1");
+
     interval = setInterval(function () {
         update();
     }, 1000 / fps);
@@ -115,10 +149,21 @@ app.use('/css', express.static(__dirname + '/public/css'));
 app.use('/assets', express.static(__dirname + '/public/assets'));
 
 // Start the server on Port: 8000
-http.listen(8000, function () {
-    console.log('listening on *:8000');
-    io.on('connection', function (socket) {
-        connections.push(socket);
+http.listen(8000, () => {
+    console.log("Server running on http://localhost:8000");
+
+    io.on("connection", socket => {
+        console.log("Client connected:", socket.id); // Log when a client connects
+
+        // Send Static object list
+        socket.emit("worldInit", {
+            static: staticObjects,
+            dynamic: dynamicObjects.map(obj => ({
+                id: obj.id,
+                width: obj.width,
+                height: obj.height
+            }))
+        });
     });
 });
 
