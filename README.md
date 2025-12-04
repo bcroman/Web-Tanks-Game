@@ -2,7 +2,8 @@
 Web Programming Assessment - Multiplayer Game
 
 # Requirment 
-npm init  
+npm init  - Node server  
+npm install express - Web Server  
 
 ## Powershell Issues  
 If there is an error when running this command, you need go into powershell (admin) and, enter the command 'Set-ExecutionPolicy RemoteSigned' which allow scripts to run locally on machine like Node.  

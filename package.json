@@ -4,7 +4,8 @@
   "description": "Web Programming Assessment - Multiplayer Game",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup": "npm install express"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/bcroman/Web-Tanks-Game/issues"
   },
-  "homepage": "https://github.com/bcroman/Web-Tanks-Game#readme"
+  "homepage": "https://github.com/bcroman/Web-Tanks-Game#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
 }
