@@ -28,7 +28,7 @@ let world;
 const SCALE = 30;
 const WIDTH = 900;
 const HEIGHT = 600;
-let fps = 30;
+let fps = 60;
 let interval;
 
 // Store objects
@@ -118,6 +118,16 @@ function createDynamicCircle(x, y, radius, objid) {
 function update() {
     world.Step(1 / fps, 10, 10);
     world.ClearForces();
+
+    // Prepare dynamic object states to send to clients
+    let dynState = dynamicObjects.map(obj => ({
+        id: obj.id,
+        x: obj.body.GetPosition().x * SCALE,
+        y: obj.body.GetPosition().y * SCALE,
+        angle: obj.body.GetAngle()
+    }));
+
+    io.emit("dynamicUpdate", dynState);
 };
 
 // Initialize the Box2D world
@@ -127,7 +137,7 @@ function init() {
         true               //allow sleep
     );
 
-    // Create Static Objects
+    // Canvass Boundaries
     createStaticBox(WIDTH / 2, HEIGHT - 10, WIDTH, 20, 'ground');
     createStaticBox(50, HEIGHT / 2, 20, HEIGHT, 'leftWall');
     createStaticBox(WIDTH - 50, HEIGHT / 2, 20, HEIGHT, 'rightWall');
@@ -135,6 +145,7 @@ function init() {
 
     createDynamicBox(WIDTH / 2, 200, 40, 40, "box1");
     createDynamicCircle(WIDTH / 2 + 100, 100, 20, "circle1");
+    createDynamicCircle(WIDTH / 2 + 110, 120, 20, "circle2");
 
     interval = setInterval(function () {
         update();
@@ -161,7 +172,9 @@ http.listen(8000, () => {
             dynamic: dynamicObjects.map(obj => ({
                 id: obj.id,
                 width: obj.width,
-                height: obj.height
+                height: obj.height,
+                radius: obj.radius ?? null,
+                type: obj.type
             }))
         });
     });
