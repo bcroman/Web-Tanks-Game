@@ -3,7 +3,11 @@ Web Programming Assessment - Multiplayer Game
 
 # Requirment 
 npm init  - Node server  
-npm install express - Web Server  
+npm install express - Web Server
+npm install socket.io - websockets for multiplayer
+
+# Setup Game Server
+In Terminal, run the command 'npm run setup' which will install the needed libraries  
 
 ## Powershell Issues  
 If there is an error when running this command, you need go into powershell (admin) and, enter the command 'Set-ExecutionPolicy RemoteSigned' which allow scripts to run locally on machine like Node.  
