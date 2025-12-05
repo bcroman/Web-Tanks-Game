@@ -23,14 +23,30 @@ socket.on("worldInit", (data) => {
 socket.on("dynamicUpdate", (state) => {
     state.forEach(update => {
         let obj = dynamicObjects.find(o => o.id === update.id);
-        if (obj) {
-            obj.x = update.x;
-            obj.y = update.y;
-            obj.angle = update.angle;
-            if (update.turretAngle !== null) {
-                obj.turretAngle = update.turretAngle;
-            }
+
+        // If object doesn't exist, create it
+        if (!obj) {
+            dynamicObjects.push({
+                id: update.id,
+                x: update.x,
+                y: update.y,
+                angle: update.angle,
+                radius: update.radius,
+                width: update.width,
+                height: update.height,
+                turretAngle: update.turretAngle,
+                type: update.type
+            });
+            return;
         }
+
+        // Update existing object
+        obj.x = update.x;
+        obj.y = update.y;
+        obj.angle = update.angle;
+
+        if (update.turretAngle !== undefined)
+            obj.turretAngle = update.turretAngle;
     });
 });
 
@@ -88,13 +104,23 @@ function drawTank(obj) {
 
     // Convert logical angle → canvas angle
     // Logical 90° = straight up; Canvas 0° = right
-    let canvasAngle = (obj.turretAngle - 90) * Math.PI / 180;
-    ctx.rotate(canvasAngle);
+    ctx.rotate(obj.turretAngle * Math.PI / 180);
 
     // Draw the barrel extending outward from pivot
     ctx.fillStyle = "blue";
-    ctx.fillRect(0, -3, 45, 6);
+    ctx.fillRect(0, -5, 40, 10);
 
+    ctx.restore();
+}
+
+// Function to Draw Bullets
+function drawBullet(obj) {
+    ctx.save();
+    ctx.translate(obj.x, obj.y);
+    ctx.fillStyle = "yellow";
+    ctx.beginPath();
+    ctx.arc(0, 0, obj.radius, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
 }
 
@@ -102,13 +128,13 @@ function drawTank(obj) {
 function drawDynamicObjects() {
     dynamicObjects.forEach(obj => {
         if (!obj.x || !obj.y) return;
-        if (obj.type === "circle") {
-            drawDynamicCircles(obj);
-        }
-        else if (obj.type === "tank") {
+        if (obj.type === "bullet") {
+            drawBullet(obj);
+        } else if (obj.type === "tank") {
             drawTank(obj);
-        }
-        else {
+        } else if (obj.type === "circle") {
+            drawDynamicCircles(obj);
+        } else {
             drawDynamicBoxes(obj);
         }
     });

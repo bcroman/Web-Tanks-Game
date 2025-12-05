@@ -135,7 +135,48 @@ function handleMovement(playerId, input) {
     if (input.aimDown) tankObj.turretAngle += 3;
 
     if (tankObj.turretAngle < 179) tankObj.turretAngle = 180;
-    if (tankObj.turretAngle > 359) tankObj.turretAngle =358;
+    if (tankObj.turretAngle > 359) tankObj.turretAngle = 358;
+}
+
+// Function to handle firing bullets
+function fireBullet(playerId) {
+    const tankObj = dynamicObjects.find(o => o.id === playerId && o.type === "tank");
+    if (!tankObj) return;
+
+    const angleDeg = tankObj.turretAngle;
+    const angleRad = angleDeg * Math.PI / 180;
+
+    const power = 25;
+
+    // ---- FIXED BULLET SPAWN POSITION ----
+    // tank position
+    const tankX = tankObj.body.GetPosition().x * SCALE;
+    const tankY = tankObj.body.GetPosition().y * SCALE;
+
+    // turret pivot is at top center of tank
+    const turretOffsetY = -tankObj.height / 2;
+
+    const pivotX = tankX;
+    const pivotY = tankY + turretOffsetY;
+
+    // bullet spawn point (35px forward from pivot)
+    const spawnX = pivotX + Math.cos(angleRad) * 35;
+    const spawnY = pivotY + Math.sin(angleRad) * 35;
+
+    const bulletId = "bullet_" + Date.now();
+
+    // Create bullet using your own circle maker
+    createDynamicCircle(spawnX, spawnY, 5, bulletId);
+
+    // Convert circle into a bullet
+    const bulletObj = dynamicObjects.find(o => o.id === bulletId);
+    bulletObj.type = "bullet";
+
+    // ---- APPLY VELOCITY USING YOUR ANGLES ----
+    const vx = Math.cos(angleRad) * power;
+    const vy = Math.sin(angleRad) * power;
+
+    bulletObj.body.SetLinearVelocity(new b2Vec2(vx, vy));
 }
 
 // Update function to step the world
@@ -149,7 +190,11 @@ function update() {
         x: obj.body.GetPosition().x * SCALE,
         y: obj.body.GetPosition().y * SCALE,
         angle: obj.body.GetAngle(),
-        turretAngle: obj.turretAngle ?? null
+        radius: obj.radius,
+        width: obj.width,
+        height: obj.height,
+        turretAngle: obj.turretAngle,
+        type: obj.type
     }));
 
     io.emit("dynamicUpdate", dynState);
@@ -166,7 +211,7 @@ function init() {
     createStaticBox(WIDTH / 2, HEIGHT - 10, WIDTH, 20, 'ground');
     createStaticBox(50, HEIGHT / 2, 20, HEIGHT, 'leftWall');
     createStaticBox(WIDTH - 50, HEIGHT / 2, 20, HEIGHT, 'rightWall');
-    createStaticBox(WIDTH / 2, 50, WIDTH, 20, 'ceiling');
+    //createStaticBox(WIDTH / 2, 50, WIDTH, 20, 'ceiling');
 
     // Hhardcode Tanks
     // createDynamicBox(200, 500, 60, 30, "tank1");
@@ -213,9 +258,14 @@ http.listen(8000, () => {
             });
         }, 100);
 
-        // Receive Input from Client
+        // Receive Input from Player
         socket.on("input", data => {
             handleMovement(socket.id, data);
+        });
+
+        // Handle Firing Bullets From Player
+        socket.on("fire", () => {
+            fireBullet(socket.id);
         });
 
         // Log Disconnection

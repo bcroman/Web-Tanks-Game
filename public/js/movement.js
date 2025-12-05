@@ -23,6 +23,13 @@ document.addEventListener("keyup", (e) => {
     if (e.key === "ArrowDown" || e.key === "s") inputState.aimDown = false;
 });
 
+// Spacebar - Fire Bullets
+document.addEventListener("keydown", (e) => {
+    if (e.code === "Space") {
+        socket.emit("fire");
+    }
+});
+
 // Send Data To Server 
 setInterval(() => {
     socket.emit("input", inputState);
