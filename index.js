@@ -60,9 +60,9 @@ function createStaticBox(x, y, width, height, objid) {
 // Function to create a dynamic box
 function createDynamicBox(x, y, width, height, objid) {
     let fixDef = new b2FixtureDef();
-    fixDef.density = 1;
-    fixDef.friction = 0.5;
-    fixDef.restitution = 0.2;
+    fixDef.density = 2;
+    fixDef.friction = 0.8;
+    fixDef.restitution = 0.0;
 
     let bodyDef = new b2BodyDef();
     bodyDef.type = b2Body.b2_dynamicBody;
@@ -74,6 +74,7 @@ function createDynamicBox(x, y, width, height, objid) {
     let fix = world.CreateBody(bodyDef).CreateFixture(fixDef);
 
     fix.GetBody().SetUserData({ objid, type: "dynamic" });
+    fix.GetBody().SetFixedRotation(true);
 
     dynamicObjects.push({
         id: objid,
@@ -143,9 +144,9 @@ function init() {
     createStaticBox(WIDTH - 50, HEIGHT / 2, 20, HEIGHT, 'rightWall');
     createStaticBox(WIDTH / 2, 50, WIDTH, 20, 'ceiling');
 
-    createDynamicBox(WIDTH / 2, 200, 40, 40, "box1");
-    createDynamicCircle(WIDTH / 2 + 100, 100, 20, "circle1");
-    createDynamicCircle(WIDTH / 2 + 110, 120, 20, "circle2");
+    // Hhardcode Tanks
+    // createDynamicBox(200, 500, 60, 30, "tank1");
+    // createDynamicBox(700, 500, 60, 30, "tank2");
 
     interval = setInterval(function () {
         update();
@@ -165,6 +166,10 @@ http.listen(8000, () => {
 
     io.on("connection", socket => {
         console.log("Client connected:", socket.id); // Log when a client connects
+
+        //Spawn Tank When Player Joins
+        let spawnX = Math.random() * 300 + 200;
+        createDynamicBox(spawnX, 500, 60, 30, `tank_${socket.id}`);
 
         // Send Static object list
         socket.emit("worldInit", {
