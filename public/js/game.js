@@ -4,6 +4,11 @@ let dynamicObjects = [];
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// Socket Connection
+socket.on("connect", () => {
+    console.log("Connected to server.");
+})
+
 // Receive initial world objects
 socket.on("worldInit", (data) => {
     staticObjects = data.static;

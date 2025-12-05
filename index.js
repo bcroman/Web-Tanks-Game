@@ -30,6 +30,7 @@ const WIDTH = 900;
 const HEIGHT = 600;
 let fps = 60;
 let interval;
+let playerTanks = {};
 
 // Store objects
 let staticObjects = [];
@@ -115,6 +116,31 @@ function createDynamicCircle(x, y, radius, objid) {
     return fix;
 }
 
+// Function to handle player movement
+function handleMovement(playerId, input) {
+    let tankObj = dynamicObjects.find(o => o.id === playerId);
+
+    if (!tankObj) {
+        //console.log("Tank not found for", playerId);
+        return;
+    }
+
+    let body = tankObj.body;
+    let vel = body.GetLinearVelocity();
+
+    const moveSpeed = 5;
+
+    if (input.left) {
+        body.SetLinearVelocity(new b2Vec2(-moveSpeed, vel.y));
+    }
+    else if (input.right) {
+        body.SetLinearVelocity(new b2Vec2(moveSpeed, vel.y));
+    }
+    else {
+        // friction slow-down
+        body.SetLinearVelocity(new b2Vec2(vel.x * 0.9, vel.y));
+    }
+}
 // Update function to step the world
 function update() {
     world.Step(1 / fps, 10, 10);
@@ -165,14 +191,15 @@ http.listen(8000, () => {
     console.log("Server running on http://localhost:8000");
 
     io.on("connection", socket => {
-        console.log("Client connected:", socket.id); // Log when a client connects
+        console.log("Client connected:", socket.id);
 
         //Spawn Tank When Player Joins
         let spawnX = Math.random() * 300 + 200;
-        createDynamicBox(spawnX, 500, 60, 30, `tank_${socket.id}`);
+        let tank = createDynamicBox(spawnX, 500, 60, 30, socket.id);
+        playerTanks[socket.id] = tank;
 
-        // Send Static object list
-        socket.emit("worldInit", {
+        // Send object list
+        io.emit("worldInit", {
             static: staticObjects,
             dynamic: dynamicObjects.map(obj => ({
                 id: obj.id,
@@ -182,6 +209,17 @@ http.listen(8000, () => {
                 type: obj.type
             }))
         });
+
+        // Receive Input from Client
+        socket.on("input", data => {
+            handleMovement(socket.id, data);
+        });
+
+        // Log Disconnection
+        socket.on("disconnect", () => {
+            console.log("Disconnected:", socket.id);
+        });
+
     });
 });
 
