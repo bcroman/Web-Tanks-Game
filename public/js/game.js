@@ -27,6 +27,9 @@ socket.on("dynamicUpdate", (state) => {
             obj.x = update.x;
             obj.y = update.y;
             obj.angle = update.angle;
+            if (update.turretAngle !== null) {
+                obj.turretAngle = update.turretAngle;
+            }
         }
     });
 });
@@ -49,15 +52,18 @@ function drawStaticObjects() {
 function drawDynamicBoxes(obj) {
     ctx.save();
     ctx.translate(obj.x, obj.y);
-    ctx.rotate(obj.angle);
 
-    ctx.fillStyle = "red";
-    ctx.fillRect(
-        -obj.width / 2,
-        -obj.height / 2,
-        obj.width,
-        obj.height
-    );
+    // Draw tank body
+    ctx.fillStyle = "blue";
+    ctx.fillRect(-obj.width / 2, -obj.height / 2, obj.width, obj.height);
+
+    // ⭐ Draw turret
+    ctx.save();
+    let canvasAngle = (obj.turretAngle - 90) * Math.PI / 180;
+    ctx.rotate(canvasAngle);
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, -5, 40, 10);
+    ctx.restore();
 
     ctx.restore();
 }

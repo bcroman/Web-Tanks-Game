@@ -82,7 +82,8 @@ function createDynamicBox(x, y, width, height, objid) {
         width: width,
         height: height,
         body: fix.GetBody(),
-        type: "dynamic"
+        type: "dynamic",
+        turretAngle: 45
     });
 
     return fix;
@@ -118,29 +119,25 @@ function createDynamicCircle(x, y, radius, objid) {
 
 // Function to handle player movement
 function handleMovement(playerId, input) {
-    let tankObj = dynamicObjects.find(o => o.id === playerId);
 
-    if (!tankObj) {
-        //console.log("Tank not found for", playerId);
-        return;
-    }
+    let tankObj = dynamicObjects.find(o => o.id === playerId);
+    if (!tankObj) return;
 
     let body = tankObj.body;
     let vel = body.GetLinearVelocity();
 
     const moveSpeed = 5;
+    if (input.left) body.SetLinearVelocity(new b2Vec2(-moveSpeed, vel.y));
+    else if (input.right) body.SetLinearVelocity(new b2Vec2(moveSpeed, vel.y));
+    else body.SetLinearVelocity(new b2Vec2(vel.x * 0.9, vel.y));
 
-    if (input.left) {
-        body.SetLinearVelocity(new b2Vec2(-moveSpeed, vel.y));
-    }
-    else if (input.right) {
-        body.SetLinearVelocity(new b2Vec2(moveSpeed, vel.y));
-    }
-    else {
-        // friction slow-down
-        body.SetLinearVelocity(new b2Vec2(vel.x * 0.9, vel.y));
-    }
+    if (input.aimUp) tankObj.turretAngle -= 1;
+    if (input.aimDown) tankObj.turretAngle += 1;
+
+    if (tankObj.turretAngle < 10) tankObj.turretAngle = 10;
+    if (tankObj.turretAngle > 170) tankObj.turretAngle = 170;
 }
+
 // Update function to step the world
 function update() {
     world.Step(1 / fps, 10, 10);
@@ -151,7 +148,8 @@ function update() {
         id: obj.id,
         x: obj.body.GetPosition().x * SCALE,
         y: obj.body.GetPosition().y * SCALE,
-        angle: obj.body.GetAngle()
+        angle: obj.body.GetAngle(),
+        turretAngle: obj.turretAngle ?? null
     }));
 
     io.emit("dynamicUpdate", dynState);
