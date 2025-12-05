@@ -83,7 +83,7 @@ function createDynamicBox(x, y, width, height, objid) {
         height: height,
         body: fix.GetBody(),
         type: "dynamic",
-        turretAngle: 45
+        turretAngle: 200
     });
 
     return fix;
@@ -131,11 +131,11 @@ function handleMovement(playerId, input) {
     else if (input.right) body.SetLinearVelocity(new b2Vec2(moveSpeed, vel.y));
     else body.SetLinearVelocity(new b2Vec2(vel.x * 0.9, vel.y));
 
-    if (input.aimUp) tankObj.turretAngle -= 1;
-    if (input.aimDown) tankObj.turretAngle += 1;
+    if (input.aimUp) tankObj.turretAngle -= 3;
+    if (input.aimDown) tankObj.turretAngle += 3;
 
-    if (tankObj.turretAngle < 10) tankObj.turretAngle = 10;
-    if (tankObj.turretAngle > 170) tankObj.turretAngle = 170;
+    if (tankObj.turretAngle < 179) tankObj.turretAngle = 180;
+    if (tankObj.turretAngle > 359) tankObj.turretAngle =358;
 }
 
 // Update function to step the world
@@ -195,6 +195,9 @@ http.listen(8000, () => {
         let spawnX = Math.random() * 300 + 200;
         let tank = createDynamicBox(spawnX, 500, 60, 30, socket.id);
         playerTanks[socket.id] = tank;
+
+        let tankObj = dynamicObjects.find(o => o.id === socket.id);
+        tankObj.type = "tank";
 
         // Send object list
         setTimeout(() => {

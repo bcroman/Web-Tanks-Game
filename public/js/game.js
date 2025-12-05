@@ -54,16 +54,8 @@ function drawDynamicBoxes(obj) {
     ctx.translate(obj.x, obj.y);
 
     // Draw tank body
-    ctx.fillStyle = "blue";
+    ctx.fillStyle = "red";
     ctx.fillRect(-obj.width / 2, -obj.height / 2, obj.width, obj.height);
-
-    // ⭐ Draw turret
-    ctx.save();
-    let canvasAngle = (obj.turretAngle - 90) * Math.PI / 180;
-    ctx.rotate(canvasAngle);
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, -5, 40, 10);
-    ctx.restore();
 
     ctx.restore();
 }
@@ -81,13 +73,42 @@ function drawDynamicCircles(obj) {
     ctx.restore();
 }
 
+// Function to Draw Tank with Turret
+function drawTank(obj) {
+    ctx.save();
+    ctx.translate(obj.x, obj.y);
+
+    // Draw tank body
+    ctx.fillStyle = "blue";
+    ctx.fillRect(-obj.width / 2, -obj.height / 2, obj.width, obj.height);
+
+    // Move pivot to TOP CENTER of tank
+    let turretOffsetY = -obj.height / 2; // correct pivot
+    ctx.translate(0, turretOffsetY);
+
+    // Convert logical angle → canvas angle
+    // Logical 90° = straight up; Canvas 0° = right
+    let canvasAngle = (obj.turretAngle - 90) * Math.PI / 180;
+    ctx.rotate(canvasAngle);
+
+    // Draw the barrel extending outward from pivot
+    ctx.fillStyle = "blue";
+    ctx.fillRect(0, -3, 45, 6);
+
+    ctx.restore();
+}
+
 // Function to Draw all dynamic objects
 function drawDynamicObjects() {
     dynamicObjects.forEach(obj => {
         if (!obj.x || !obj.y) return;
         if (obj.type === "circle") {
             drawDynamicCircles(obj);
-        } else {
+        }
+        else if (obj.type === "tank") {
+            drawTank(obj);
+        }
+        else {
             drawDynamicBoxes(obj);
         }
     });
