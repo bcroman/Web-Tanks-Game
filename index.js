@@ -199,16 +199,18 @@ http.listen(8000, () => {
         playerTanks[socket.id] = tank;
 
         // Send object list
-        io.emit("worldInit", {
-            static: staticObjects,
-            dynamic: dynamicObjects.map(obj => ({
-                id: obj.id,
-                width: obj.width,
-                height: obj.height,
-                radius: obj.radius ?? null,
-                type: obj.type
-            }))
-        });
+        setTimeout(() => {
+            io.emit("worldInit", {
+                static: staticObjects,
+                dynamic: dynamicObjects.map(obj => ({
+                    id: obj.id,
+                    width: obj.width,
+                    height: obj.height,
+                    radius: obj.radius ?? null,
+                    type: obj.type
+                }))
+            });
+        }, 100);
 
         // Receive Input from Client
         socket.on("input", data => {

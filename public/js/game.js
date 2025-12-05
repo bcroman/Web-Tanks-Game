@@ -11,6 +11,9 @@ socket.on("connect", () => {
 
 // Receive initial world objects
 socket.on("worldInit", (data) => {
+    staticObjects = [];
+    dynamicObjects = [];
+
     staticObjects = data.static;
     dynamicObjects = data.dynamic;
     console.log("World initialized:", data);
