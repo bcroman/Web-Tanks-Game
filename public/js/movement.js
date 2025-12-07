@@ -33,4 +33,4 @@ document.addEventListener("keydown", (e) => {
 // Send Data To Server 
 setInterval(() => {
     socket.emit("input", inputState);
-}, 60);
+}, 30);

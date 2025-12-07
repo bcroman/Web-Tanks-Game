@@ -92,9 +92,9 @@ function createDynamicBox(x, y, width, height, objid) {
 // Function to create a dynamic circle
 function createDynamicCircle(x, y, radius, objid) {
     let fixDef = new b2FixtureDef();
-    fixDef.density = 1;
-    fixDef.friction = 0.5;
-    fixDef.restitution = 0.2;
+    fixDef.density = 0.5;
+    fixDef.friction = 0;
+    fixDef.restitution = 0.1;
 
     let bodyDef = new b2BodyDef();
     bodyDef.type = b2Body.b2_dynamicBody;
@@ -131,11 +131,13 @@ function handleMovement(playerId, input) {
     else if (input.right) body.SetLinearVelocity(new b2Vec2(moveSpeed, vel.y));
     else body.SetLinearVelocity(new b2Vec2(vel.x * 0.9, vel.y));
 
-    if (input.aimUp) tankObj.turretAngle -= 3;
-    if (input.aimDown) tankObj.turretAngle += 3;
+    // Handle turret rotation
+    if (input.aimUp) tankObj.turretAngle -= 2;
+    if (input.aimDown) tankObj.turretAngle += 2;
 
-    if (tankObj.turretAngle < 179) tankObj.turretAngle = 180;
-    if (tankObj.turretAngle > 359) tankObj.turretAngle = 358;
+    // ShellShock angle limits
+    if (tankObj.turretAngle < 10) tankObj.turretAngle = 10; 
+    if (tankObj.turretAngle > 170) tankObj.turretAngle = 170;
 }
 
 // Function to handle firing bullets
@@ -144,39 +146,37 @@ function fireBullet(playerId) {
     if (!tankObj) return;
 
     const angleDeg = tankObj.turretAngle;
-    const angleRad = angleDeg * Math.PI / 180;
+    const angleRad = (angleDeg + 180) * Math.PI / 180;
 
-    const power = 25;
+    const power = 20; 
 
-    // ---- FIXED BULLET SPAWN POSITION ----
-    // tank position
+    // Tank body center
     const tankX = tankObj.body.GetPosition().x * SCALE;
     const tankY = tankObj.body.GetPosition().y * SCALE;
 
-    // turret pivot is at top center of tank
-    const turretOffsetY = -tankObj.height / 2;
-
+    // Turret pivot point
     const pivotX = tankX;
-    const pivotY = tankY + turretOffsetY;
+    const pivotY = tankY - (tankObj.height / 2);
 
-    // bullet spawn point (35px forward from pivot)
+    // Bullet spawns 35px forward of the pivot
     const spawnX = pivotX + Math.cos(angleRad) * 35;
     const spawnY = pivotY + Math.sin(angleRad) * 35;
 
     const bulletId = "bullet_" + Date.now();
 
-    // Create bullet using your own circle maker
+    // Create bullet object
     createDynamicCircle(spawnX, spawnY, 5, bulletId);
 
-    // Convert circle into a bullet
     const bulletObj = dynamicObjects.find(o => o.id === bulletId);
     bulletObj.type = "bullet";
 
-    // ---- APPLY VELOCITY USING YOUR ANGLES ----
-    const vx = Math.cos(angleRad) * power;
-    const vy = Math.sin(angleRad) * power;
-
-    bulletObj.body.SetLinearVelocity(new b2Vec2(vx, vy));
+    // Apply velocity based on turret angle
+    bulletObj.body.SetLinearVelocity(
+        new b2Vec2(
+            Math.cos(angleRad) * power,
+            Math.sin(angleRad) * power
+        )
+    );
 }
 
 // Update function to step the world

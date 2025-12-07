@@ -98,15 +98,15 @@ function drawTank(obj) {
     ctx.fillStyle = "blue";
     ctx.fillRect(-obj.width / 2, -obj.height / 2, obj.width, obj.height);
 
-    // Move pivot to TOP CENTER of tank
-    let turretOffsetY = -obj.height / 2; // correct pivot
+    // Draw turret
+    let turretOffsetY = -obj.height / 2;
     ctx.translate(0, turretOffsetY);
 
-    // Convert logical angle → canvas angle
-    // Logical 90° = straight up; Canvas 0° = right
-    ctx.rotate(obj.turretAngle * Math.PI / 180);
+    // Rotate turret based on turretAngle
+    const canvasAngle = (obj.turretAngle + 180) * Math.PI / 180;
+    ctx.rotate(canvasAngle);
 
-    // Draw the barrel extending outward from pivot
+    // Draw the barrel extending outward
     ctx.fillStyle = "blue";
     ctx.fillRect(0, -5, 40, 10);
 
