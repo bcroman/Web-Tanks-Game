@@ -125,17 +125,27 @@ function handleMovement(playerId, input) {
 
     let body = tankObj.body;
     let vel = body.GetLinearVelocity();
-
     const moveSpeed = 5;
-    if (input.left) body.SetLinearVelocity(new b2Vec2(-moveSpeed, vel.y));
-    else if (input.right) body.SetLinearVelocity(new b2Vec2(moveSpeed, vel.y));
-    else body.SetLinearVelocity(new b2Vec2(vel.x * 0.9, vel.y));
 
-    // Handle turret rotation
+    // Handle left/right movement
+    if (input.left) {
+        body.SetLinearVelocity(new b2Vec2(-moveSpeed, vel.y));
+        body.SetAwake(true);
+    }
+    else if (input.right) {
+        body.SetLinearVelocity(new b2Vec2(moveSpeed, vel.y));
+        body.SetAwake(true);
+    }
+    else {
+        body.SetLinearVelocity(new b2Vec2(vel.x * 0.9, vel.y));
+        body.SetAwake(true);
+    }
+
+    // Handle Turret Rotation
     if (input.aimUp) tankObj.turretAngle -= 2;
     if (input.aimDown) tankObj.turretAngle += 2;
 
-    // ShellShock angle limits
+    // Turret Angles 
     if (tankObj.turretAngle < 10) tankObj.turretAngle = 10; 
     if (tankObj.turretAngle > 170) tankObj.turretAngle = 170;
 }
