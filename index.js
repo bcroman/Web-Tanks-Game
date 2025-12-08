@@ -91,7 +91,8 @@ function createTank(x, y, width, height, id) {
         height,
         body,
         type: "tank",
-        turretAngle: 200
+        turretAngle: 200,
+        hp: 20
     };
 
     dynamicObjects.push(tankObj);
@@ -231,6 +232,14 @@ function handleCollision(contact) {
     else if (dataB.type === "bullet" && dataA.type === "static") {
         markBulletForDeletion(dataB.id);
     }
+
+    // Bullet → Tank collision
+    if (dataA.type === "bullet" && dataB.type === "tank") {
+        handleBulletHitTank(dataA.id, dataB.id);
+    }
+    if (dataB.type === "bullet" && dataA.type === "tank") {
+        handleBulletHitTank(dataB.id, dataA.id);
+    }
 }
 
 // Function to mark bullet for deletion
@@ -239,6 +248,12 @@ function markBulletForDeletion(bulletId) {
         id: bulletId,
         time: Date.now()
     });
+}
+
+// Function to handle bullet hitting a tank
+function handleBulletHitTank(bulletId, tankId) {
+    console.log("Bullet", bulletId, "hit Tank", tankId);
+    markBulletForDeletion(bulletId);
 }
 
 /*
@@ -274,7 +289,8 @@ function update() {
         width: obj.width,
         height: obj.height,
         turretAngle: obj.turretAngle,
-        type: obj.type
+        type: obj.type,
+        hp: obj.hp
     }));
 
     io.emit("dynamicUpdate", dynState);
@@ -330,7 +346,8 @@ http.listen(8000, () => {
                     height: obj.height,
                     radius: obj.radius ?? null,
                     type: obj.type,
-                    turretAngle: obj.turretAngle
+                    turretAngle: obj.turretAngle,
+                    hp: obj.hp
                     }))
             });
         }, 100);
@@ -348,8 +365,15 @@ http.listen(8000, () => {
         // Log Disconnection
         socket.on("disconnect", () => {
             console.log("Disconnected:", socket.id);
-        });
 
+            // Remove player tank from world & arrays
+            const tankObj = dynamicObjects.find(o => o.id === socket.id && o.type === "tank");
+            if (tankObj) {
+                world.DestroyBody(tankObj.body);
+                dynamicObjects = dynamicObjects.filter(o => o.id !== socket.id);
+            }
+            delete playerTanks[socket.id];
+        });
     });
 });
 
