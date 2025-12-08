@@ -21,11 +21,13 @@ socket.on("worldInit", (data) => {
 
 // Function to Receive Dynamic Objects
 socket.on("dynamicUpdate", (state) => {
+
+    // Update or add objects from server
     state.forEach(update => {
         let obj = dynamicObjects.find(o => o.id === update.id);
 
-        // If object doesn't exist, create it
         if (!obj) {
+            // New Object
             dynamicObjects.push({
                 id: update.id,
                 x: update.x,
@@ -34,20 +36,22 @@ socket.on("dynamicUpdate", (state) => {
                 radius: update.radius,
                 width: update.width,
                 height: update.height,
-                turretAngle: update.turretAngle,
-                type: update.type
+                type: update.type,
+                turretAngle: update.turretAngle
             });
-            return;
-        }
-
-        // Update existing object
-        obj.x = update.x;
-        obj.y = update.y;
-        obj.angle = update.angle;
-
-        if (update.turretAngle !== undefined)
+        } else {
+            // Update Object
+            obj.x = update.x;
+            obj.y = update.y;
+            obj.angle = update.angle;
             obj.turretAngle = update.turretAngle;
+        }
     });
+
+    // Delete objects not present on server
+    dynamicObjects = dynamicObjects.filter(localObj =>
+        state.some(serverObj => serverObj.id === localObj.id)
+    );
 });
 
 // Function to Draw Static Boxes

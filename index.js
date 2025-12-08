@@ -31,6 +31,7 @@ const HEIGHT = 600;
 let fps = 60;
 let interval;
 let playerTanks = {};
+let bulletsToDelete = [];
 
 // Store objects
 let staticObjects = [];
@@ -103,7 +104,7 @@ function createDynamicCircle(x, y, radius, objid) {
     fixDef.shape = new b2CircleShape(radius / SCALE);
 
     let fix = world.CreateBody(bodyDef).CreateFixture(fixDef);
-    fix.GetBody().SetUserData({ id: objid, type: "circle" });
+    fix.GetBody().SetUserData({ id: objid, type: "bullet" });
 
     dynamicObjects.push({
         id: objid,
@@ -189,10 +190,70 @@ function fireBullet(playerId) {
     );
 }
 
+// Function to handle collisions
+function setupContactListener() {
+    let listener = new Box2D.Dynamics.b2ContactListener();
+
+    listener.BeginContact = function (contact) {
+        handleCollision(contact);
+    };
+
+    world.SetContactListener(listener);
+}
+
+// Function to handle collision events
+function handleCollision(contact) {
+    let fixtureA = contact.GetFixtureA();
+    let fixtureB = contact.GetFixtureB();
+
+    let bodyA = fixtureA.GetBody();
+    let bodyB = fixtureB.GetBody();
+
+    let dataA = bodyA.GetUserData();
+    let dataB = bodyB.GetUserData();
+
+    if (!dataA || !dataB) return;
+
+    // Bullet → Ground collision
+    if (dataA.type === "bullet" && dataB.type === "static") {
+        markBulletForDeletion(dataA.id);
+    }
+    else if (dataB.type === "bullet" && dataA.type === "static") {
+        markBulletForDeletion(dataB.id);
+    }
+}
+
+// Function to mark bullet for deletion
+function markBulletForDeletion(bulletId) {
+    bulletsToDelete.push({
+        id: bulletId,
+        time: Date.now()
+    });
+}
+
+
 // Update function to step the world
 function update() {
     world.Step(1 / fps, 10, 10);
     world.ClearForces();
+
+    // Delete bullets that have collided
+    let now = Date.now();
+
+    // Remove bullets after 5 seconds
+    bulletsToDelete = bulletsToDelete.filter(entry => {
+        if (now - entry.time >= 5000) {
+            let bulletObj = dynamicObjects.find(o => o.id === entry.id);
+
+            // Remove from Box2D world and dynamicObjects list
+            if (bulletObj) {
+                world.DestroyBody(bulletObj.body);
+                dynamicObjects = dynamicObjects.filter(o => o.id !== entry.id);
+            }
+            return false;
+        }
+        return true;
+    });
 
     // Prepare dynamic object states to send to clients
     let dynState = dynamicObjects.map(obj => ({
@@ -214,18 +275,17 @@ function update() {
 function init() {
     world = new b2World(
         new b2Vec2(0, 10), //gravity
-        true               //allow sleep
+        true               
     );
+
+    // Call Collision Handler
+    setupContactListener(); 
 
     // Canvass Boundaries
     createStaticBox(WIDTH / 2, HEIGHT - 10, WIDTH, 20, 'ground');
     createStaticBox(50, HEIGHT / 2, 20, HEIGHT, 'leftWall');
     createStaticBox(WIDTH - 50, HEIGHT / 2, 20, HEIGHT, 'rightWall');
     //createStaticBox(WIDTH / 2, 50, WIDTH, 20, 'ceiling');
-
-    // Hhardcode Tanks
-    // createDynamicBox(200, 500, 60, 30, "tank1");
-    // createDynamicBox(700, 500, 60, 30, "tank2");
 
     interval = setInterval(function () {
         update();
