@@ -1,13 +1,16 @@
-// Server Configurations
+/*
+Server Configuration
+*/ 
 'use strict';
-const { create } = require('domain');
 const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const Box2D = require('box2dweb-commonjs').Box2D;
 
-// Box2D Variables
+/*
+Box2D Valiables
+*/ 
 let b2Vec2 = Box2D.Common.Math.b2Vec2;
 let b2AABB = Box2D.Collision.b2AABB;
 let b2BodyDef = Box2D.Dynamics.b2BodyDef;
@@ -21,24 +24,27 @@ let b2CircleShape = Box2D.Collision.Shapes.b2CircleShape;
 let b2MouseJointDef = Box2D.Dynamics.Joints.b2MouseJointDef;
 let b3EdgeShape = Box2D.Collision.Shapes.b2EdgeShape;
 
-let connections = [];
-
-// Box2D World Variables
+/*
+Game Variables
+*/ 
 let world;
 const SCALE = 30;
 const WIDTH = 900;
 const HEIGHT = 600;
 let fps = 60;
 let interval;
+
 let playerTanks = {};
 let bulletsToDelete = [];
-
-// Store objects
 let staticObjects = [];
 let dynamicObjects = [];
 
+/*
+Create Object Functions
+*/ 
+
 // Function to create a static box
-function createStaticBox(x, y, width, height, objid) {
+function createStaticBox(x, y, width, height, id) {
     let fixDef = new b2FixtureDef();
     fixDef.density = 1;
     fixDef.friction = 0.5;
@@ -52,15 +58,15 @@ function createStaticBox(x, y, width, height, objid) {
     fixDef.shape.SetAsBox((width / SCALE) / 2, (height / SCALE) / 2);
 
     let fix = world.CreateBody(bodyDef).CreateFixture(fixDef);
-    fix.GetBody().SetUserData({ id: objid, type: "static" });
+    fix.GetBody().SetUserData({ id: id, type: "static" });
 
-    staticObjects.push({ objid, x, y, width, height, type: "static" });
+    staticObjects.push({ id, x, y, width, height, type: "static" });
 
     return fix;
 }
 
 // Function to create a dynamic box
-function createDynamicBox(x, y, width, height, objid) {
+function createTank(x, y, width, height, id) {
     let fixDef = new b2FixtureDef();
     fixDef.density = 2;
     fixDef.friction = 0.8;
@@ -74,51 +80,68 @@ function createDynamicBox(x, y, width, height, objid) {
     fixDef.shape.SetAsBox((width / SCALE) / 2, (height / SCALE) / 2);
 
     let fix = world.CreateBody(bodyDef).CreateFixture(fixDef);
+    let body = fix.GetBody();
 
-    fix.GetBody().SetUserData({ objid, type: "dynamic" });
-    fix.GetBody().SetFixedRotation(true);
+    body.SetUserData({ id: id, type: "tank" });
+    body.SetFixedRotation(true);
 
-    dynamicObjects.push({
-        id: objid,
-        width: width,
-        height: height,
-        body: fix.GetBody(),
-        type: "dynamic",
+    const tankObj = {
+        id,
+        width,
+        height,
+        body,
+        type: "tank",
         turretAngle: 200
-    });
+    };
 
-    return fix;
+    dynamicObjects.push(tankObj);
+
+    return tankObj;
 }
 
 // Function to create a dynamic circle
-function createDynamicCircle(x, y, radius, objid) {
+function createBullet(x, y, radius, id, angleRad, speed) {
     let fixDef = new b2FixtureDef();
-    fixDef.density = 0.5;
-    fixDef.friction = 0;
+    fixDef.density     = 0.2;
+    fixDef.friction    = 0;
     fixDef.restitution = 0.1;
 
     let bodyDef = new b2BodyDef();
-    bodyDef.type = b2Body.b2_dynamicBody;
+    bodyDef.type   = b2Body.b2_dynamicBody;
+    bodyDef.bullet = true; // continuous collision detection
     bodyDef.position.Set(x / SCALE, y / SCALE);
 
     fixDef.shape = new b2CircleShape(radius / SCALE);
 
-    let fix = world.CreateBody(bodyDef).CreateFixture(fixDef);
-    fix.GetBody().SetUserData({ id: objid, type: "bullet" });
+    let fix  = world.CreateBody(bodyDef).CreateFixture(fixDef);
+    let body = fix.GetBody();
 
-    dynamicObjects.push({
-        id: objid,
-        radius: radius,
+    body.SetUserData({ id: id, type: "bullet" });
+
+    const bulletObj = {
+        id,
+        radius,
         width: radius * 2,
         height: radius * 2,
-        body: fix.GetBody(),
-        type: "circle"
-    });
+        body,
+        type: "bullet"
+    };
 
-    return fix;
+    dynamicObjects.push(bulletObj);
+
+    // Shot velocity
+    body.SetLinearVelocity(new b2Vec2(
+        Math.cos(angleRad) * speed,
+        Math.sin(angleRad) * speed
+    ));
+
+    return bulletObj;
 }
 
-// Function to handle player movement
+/*
+Movement and Input Logic
+*/
+// Function to handle player movement input
 function handleMovement(playerId, input) {
 
     let tankObj = dynamicObjects.find(o => o.id === playerId);
@@ -131,16 +154,14 @@ function handleMovement(playerId, input) {
     // Handle left/right movement
     if (input.left) {
         body.SetLinearVelocity(new b2Vec2(-moveSpeed, vel.y));
-        body.SetAwake(true);
     }
     else if (input.right) {
         body.SetLinearVelocity(new b2Vec2(moveSpeed, vel.y));
-        body.SetAwake(true);
     }
     else {
         body.SetLinearVelocity(new b2Vec2(vel.x * 0.9, vel.y));
-        body.SetAwake(true);
     }
+    body.SetAwake(true);
 
     // Handle Turret Rotation
     if (input.aimUp) tankObj.turretAngle -= 2;
@@ -153,43 +174,32 @@ function handleMovement(playerId, input) {
 
 // Function to handle firing bullets
 function fireBullet(playerId) {
-    const tankObj = dynamicObjects.find(o => o.id === playerId && o.type === "tank");
-    if (!tankObj) return;
+    const tank = dynamicObjects.find(o => o.id === playerId && o.type === "tank");
+    if (!tank) return;
 
-    const angleDeg = tankObj.turretAngle;
-    const angleRad = (angleDeg + 180) * Math.PI / 180;
+    const angleDeg = tank.turretAngle;
+    const angleRad = (angleDeg + 180)* Math.PI / 180;
+    const power    = 20;
 
-    const power = 20; 
+    // Tank body center (world coordinates in pixels)
+    const tankX = tank.body.GetPosition().x * SCALE;
+    const tankY = tank.body.GetPosition().y * SCALE;
 
-    // Tank body center
-    const tankX = tankObj.body.GetPosition().x * SCALE;
-    const tankY = tankObj.body.GetPosition().y * SCALE;
-
-    // Turret pivot point
+    // Turret pivot = top-center of tank
     const pivotX = tankX;
-    const pivotY = tankY - (tankObj.height / 2);
+    const pivotY = tankY - (tank.height / 2);
 
-    // Bullet spawns 35px forward of the pivot
+    // Spawn bullet 35px ahead of turret
     const spawnX = pivotX + Math.cos(angleRad) * 35;
     const spawnY = pivotY + Math.sin(angleRad) * 35;
 
     const bulletId = "bullet_" + Date.now();
-
-    // Create bullet object
-    createDynamicCircle(spawnX, spawnY, 5, bulletId);
-
-    const bulletObj = dynamicObjects.find(o => o.id === bulletId);
-    bulletObj.type = "bullet";
-
-    // Apply velocity based on turret angle
-    bulletObj.body.SetLinearVelocity(
-        new b2Vec2(
-            Math.cos(angleRad) * power,
-            Math.sin(angleRad) * power
-        )
-    );
+    createBullet(spawnX, spawnY, 5, bulletId, angleRad, power);
 }
 
+/*
+Collision Handling
+*/
 // Function to handle collisions
 function setupContactListener() {
     let listener = new Box2D.Dynamics.b2ContactListener();
@@ -231,8 +241,9 @@ function markBulletForDeletion(bulletId) {
     });
 }
 
-
-// Update function to step the world
+/*
+World Update Loop
+*/
 function update() {
     world.Step(1 / fps, 10, 10);
     world.ClearForces();
@@ -243,9 +254,7 @@ function update() {
     // Remove bullets after 5 seconds
     bulletsToDelete = bulletsToDelete.filter(entry => {
         if (now - entry.time >= 5000) {
-            let bulletObj = dynamicObjects.find(o => o.id === entry.id);
-
-            // Remove from Box2D world and dynamicObjects list
+            let bulletObj = dynamicObjects.find(o => o.id === entry.id && o.type === "bullet");
             if (bulletObj) {
                 world.DestroyBody(bulletObj.body);
                 dynamicObjects = dynamicObjects.filter(o => o.id !== entry.id);
@@ -255,8 +264,8 @@ function update() {
         return true;
     });
 
-    // Prepare dynamic object states to send to clients
-    let dynState = dynamicObjects.map(obj => ({
+    // Prepare dynamic state for clients
+    const dynState = dynamicObjects.map(obj => ({
         id: obj.id,
         x: obj.body.GetPosition().x * SCALE,
         y: obj.body.GetPosition().y * SCALE,
@@ -271,12 +280,11 @@ function update() {
     io.emit("dynamicUpdate", dynState);
 };
 
-// Initialize the Box2D world
+/*
+World Initialisation
+*/
 function init() {
-    world = new b2World(
-        new b2Vec2(0, 10), //gravity
-        true               
-    );
+    world = new b2World(new b2Vec2(0, 10), true);
 
     // Call Collision Handler
     setupContactListener(); 
@@ -287,13 +295,13 @@ function init() {
     createStaticBox(WIDTH - 50, HEIGHT / 2, 20, HEIGHT, 'rightWall');
     //createStaticBox(WIDTH / 2, 50, WIDTH, 20, 'ceiling');
 
-    interval = setInterval(function () {
-        update();
-    }, 1000 / fps);
+    interval = setInterval(update, 1000 / fps);
     update();
 };
 
-// Express Setup 
+/*
+Express + Socket.IO Setup
+*/
 app.use(express.static('public'));
 app.use('/js', express.static(__dirname + '/public/js'));
 app.use('/css', express.static(__dirname + '/public/css'));
@@ -308,11 +316,9 @@ http.listen(8000, () => {
 
         //Spawn Tank When Player Joins
         let spawnX = Math.random() * 300 + 200;
-        let tank = createDynamicBox(spawnX, 500, 60, 30, socket.id);
+        let tank   = createTank(spawnX, 500, 60, 30, socket.id);
         playerTanks[socket.id] = tank;
 
-        let tankObj = dynamicObjects.find(o => o.id === socket.id);
-        tankObj.type = "tank";
 
         // Send object list
         setTimeout(() => {
@@ -323,8 +329,9 @@ http.listen(8000, () => {
                     width: obj.width,
                     height: obj.height,
                     radius: obj.radius ?? null,
-                    type: obj.type
-                }))
+                    type: obj.type,
+                    turretAngle: obj.turretAngle
+                    }))
             });
         }, 100);
 
