@@ -92,7 +92,7 @@ function createTank(x, y, width, height, id) {
         body,
         type: "tank",
         turretAngle: 200,
-        hp: 20
+        hp: 100
     };
 
     dynamicObjects.push(tankObj);
@@ -252,8 +252,43 @@ function markBulletForDeletion(bulletId) {
 
 // Function to handle bullet hitting a tank
 function handleBulletHitTank(bulletId, tankId) {
-    console.log("Bullet", bulletId, "hit Tank", tankId);
+    //console.log("Bullet", bulletId, "hit Tank", tankId);
     markBulletForDeletion(bulletId);
+
+    let tankObj = dynamicObjects.find(o => o.id === tankId && o.type === "tank");
+    if (!tankObj) return;
+
+    //Apply damage
+    const damage = 5;
+    tankObj.hp -= damage;
+
+    console.log("Tank", tankId, "HP:", tankObj.hp);
+
+    // Destroy tank if HP <= 0
+    if (tankObj.hp <= 0) {
+        destoryTank(tankObj);
+    }
+}
+
+// Function to destroy tank
+function destoryTank(tankId) {
+    console.log(`Tank ${tankId} destroyed!`);
+
+    // Find tank
+    let tankObj = dynamicObjects.find(o => o.id === tankId && o.type === "tank");
+    if (!tankObj) return;
+
+    // Remove from physics world
+    world.DestroyBody(tankObj.body);
+
+    // Remove from dynamicObjects
+    dynamicObjects = dynamicObjects.filter(o => o.id !== tankId);
+
+    // Remove from player list
+    delete playerTanks[tankId];
+
+    // Notify clients
+    io.emit("tankDestroyed", { id: tankId });
 }
 
 /*

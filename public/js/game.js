@@ -37,14 +37,16 @@ socket.on("dynamicUpdate", (state) => {
                 width: update.width,
                 height: update.height,
                 type: update.type,
-                turretAngle: update.turretAngle
+                turretAngle: update.turretAngle,
+                hp: update.hp
             });
         } else {
             // Update Object
             obj.x = update.x;
             obj.y = update.y;
             obj.angle = update.angle;
-            obj.turretAngle = update.turretAngle;
+            obj.turretAngle = update.turretAngle,
+            obj.hp = update.hp;
         }
     });
 
@@ -98,19 +100,22 @@ function drawTank(obj) {
     ctx.save();
     ctx.translate(obj.x, obj.y);
 
-    // Draw tank body
     ctx.fillStyle = "blue";
     ctx.fillRect(-obj.width / 2, -obj.height / 2, obj.width, obj.height);
 
-    // Draw turret
+    ctx.fillStyle = "red"; 
+    ctx.fillRect(-obj.width / 2, -obj.height / 2 - 15, obj.width, 6);
+
+    ctx.fillStyle = "lime";
+    let hpPercent = Math.max(obj.hp, 0) / 100;
+    ctx.fillRect(-obj.width / 2, -obj.height / 2 - 15, obj.width * hpPercent, 6);
+
     let turretOffsetY = -obj.height / 2;
     ctx.translate(0, turretOffsetY);
 
-    // Rotate turret based on turretAngle
     const canvasAngle = (obj.turretAngle + 180) * Math.PI / 180;
     ctx.rotate(canvasAngle);
 
-    // Draw the barrel extending outward
     ctx.fillStyle = "blue";
     ctx.fillRect(0, -5, 40, 10);
 
