@@ -29,7 +29,7 @@ Game Variables
 */ 
 let world;
 const SCALE = 30;
-const WIDTH = 900;
+const WIDTH = 1200;
 const HEIGHT = 600;
 let fps = 60;
 let interval;
