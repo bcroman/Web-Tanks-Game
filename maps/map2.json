@@ -1,0 +1,20 @@
+{
+    "name": "Single Hill",
+    "width": 1200,
+    "height": 600,
+
+    "static": [
+        { "type": "box", "id": "ground_left",  "x": 300, "y": 580, "width": 600, "height": 40 },
+        { "type": "box", "id": "hill_mid",     "x": 600, "y": 520, "width": 400, "height": 40 },
+        { "type": "box", "id": "hill_top",     "x": 600, "y": 460, "width": 300, "height": 40 },
+        { "type": "box", "id": "ground_right", "x": 900, "y": 580, "width": 600, "height": 40 },
+
+        { "type": "box", "id": "leftWall",  "x": 20,  "y": 300, "width": 40, "height": 600 },
+        { "type": "box", "id": "rightWall", "x": 1180, "y": 300, "width": 40, "height": 600 }
+    ],
+
+    "spawns": [
+        { "x": 300, "y": 500 },
+        { "x": 900, "y": 500 }
+    ]
+}
