@@ -7,6 +7,7 @@ const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const Box2D = require('box2dweb-commonjs').Box2D;
+const fs = require("fs");
 
 /*
 Box2D Valiables
@@ -34,10 +35,40 @@ const HEIGHT = 600;
 let fps = 60;
 let interval;
 
+let mapData = null;
+let tankSpawns = [];
+
 let playerTanks = {};
 let bulletsToDelete = [];
 let staticObjects = [];
 let dynamicObjects = [];
+
+/*
+Map Loading Function
+*/
+function loadMap(mapNumber) {
+    const filePath = `./maps/map${mapNumber}.json`;
+    const raw = fs.readFileSync(filePath);
+    mapData = JSON.parse(raw);
+
+    console.log(`Loaded Map ${mapNumber}: ${mapData.name}`);
+
+    // Set world size
+    global.WIDTH = mapData.width;
+    global.HEIGHT = mapData.height;
+
+    staticObjects = [];
+
+    // Build static objects
+    mapData.static.forEach(obj => {
+        if (obj.type === "box") {
+            createStaticBox(obj.x, obj.y, obj.width, obj.height, obj.id);
+        }
+    });
+
+    // Save spawn points
+    tankSpawns = mapData.spawns;
+}
 
 /*
 Create Object Functions
@@ -340,11 +371,9 @@ function init() {
     // Call Collision Handler
     setupContactListener(); 
 
-    // Canvass Boundaries
-    createStaticBox(WIDTH / 2, HEIGHT - 10, WIDTH, 20, 'ground');
-    createStaticBox(50, HEIGHT / 2, 20, HEIGHT, 'leftWall');
-    createStaticBox(WIDTH - 50, HEIGHT / 2, 20, HEIGHT, 'rightWall');
-    //createStaticBox(WIDTH / 2, 50, WIDTH, 20, 'ceiling');
+    // Map Loading
+    let mapNumber = Math.floor(Math.random() * 3) + 1; // random map 1–3
+    loadMap(mapNumber);
 
     interval = setInterval(update, 1000 / fps);
     update();
@@ -366,8 +395,8 @@ http.listen(8000, () => {
         console.log("Client connected:", socket.id);
 
         //Spawn Tank When Player Joins
-        let spawnX = Math.random() * 300 + 200;
-        let tank   = createTank(spawnX, 500, 60, 30, socket.id);
+        let spawn = tankSpawns[Math.floor(Math.random() * tankSpawns.length)];
+        let tank = createTank(spawn.x, spawn.y, 60, 30, socket.id);
         playerTanks[socket.id] = tank;
 
 

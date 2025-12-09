@@ -1,0 +1,25 @@
+{
+    "name": "Twin Hills",
+    "width": 1200,
+    "height": 600,
+
+    "static": [
+        { "type": "box", "id": "leftHill_base", "x": 200, "y": 550, "width": 300, "height": 40 },
+        { "type": "box", "id": "leftHill_mid",  "x": 200, "y": 500, "width": 200, "height": 40 },
+        { "type": "box", "id": "leftHill_top",  "x": 200, "y": 450, "width": 120, "height": 40 },
+
+        { "type": "box", "id": "rightHill_base", "x": 1000, "y": 550, "width": 300, "height": 40 },
+        { "type": "box", "id": "rightHill_mid",  "x": 1000, "y": 500, "width": 200, "height": 40 },
+        { "type": "box", "id": "rightHill_top",  "x": 1000, "y": 450, "width": 120, "height": 40 },
+
+        { "type": "box", "id": "ground", "x": 600, "y": 580, "width": 1200, "height": 40 },
+
+        { "type": "box", "id": "leftWall",  "x": 20,  "y": 300, "width": 40, "height": 600 },
+        { "type": "box", "id": "rightWall", "x": 1180, "y": 300, "width": 40, "height": 600 }
+    ],
+
+    "spawns": [
+        { "x": 200, "y": 400 },
+        { "x": 1000, "y": 400 }
+    ]
+}

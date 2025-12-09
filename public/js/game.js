@@ -11,14 +11,15 @@ socket.on("connect", () => {
 
 // Receive initial world objects
 socket.on("worldInit", (data) => {
-    staticObjects = [];
-    dynamicObjects = [];
+    console.log("World initialized:", data);
 
+    // Reset arrays
     staticObjects = data.static;
     dynamicObjects = data.dynamic;
-    console.log("World initialized:", data);
-});
 
+    // Save map name
+    currentMapName = data.mapName;
+});
 // Function to Receive Dynamic Objects
 socket.on("dynamicUpdate", (state) => {
 
