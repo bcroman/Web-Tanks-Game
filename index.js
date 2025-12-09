@@ -37,6 +37,7 @@ let interval;
 
 let mapData = null;
 let tankSpawns = [];
+let nextSpawnIndex = 0;
 
 let playerTanks = {};
 let bulletsToDelete = [];
@@ -395,7 +396,9 @@ http.listen(8000, () => {
         console.log("Client connected:", socket.id);
 
         //Spawn Tank When Player Joins
-        let spawn = tankSpawns[Math.floor(Math.random() * tankSpawns.length)];
+        let spawn = tankSpawns[nextSpawnIndex % tankSpawns.length];
+        nextSpawnIndex++;
+        
         let tank = createTank(spawn.x, spawn.y, 60, 30, socket.id);
         playerTanks[socket.id] = tank;
 
