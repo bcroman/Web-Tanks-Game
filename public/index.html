@@ -21,6 +21,12 @@
         <p id="lobbyStatus">Waiting for players...</p>
     </div>
 
+    <div id="gameOverScreen" style="display:none;">
+        <div id="winnerText">Winner: </div><br>
+        <div id="gameOverReason"></div><br>
+        <button onclick="location.reload()">Play Again</button>
+    </div>
+
     <canvas id="gameCanvas" width="1200" height="600" style="display:none;"></canvas>
 
     <script src="/socket.io/socket.io.js"></script>

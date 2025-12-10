@@ -325,6 +325,8 @@ function destoryTank(tankId) {
 
     // Notify clients
     io.emit("tankDestroyed", { id: tankId });
+
+    checkForGameOver("tank eliminated");
 }
 
 /*
@@ -434,13 +436,15 @@ io.on("connection", socket => {
             io.emit("lobbyUpdate", lobby, requiredPlayers);
         }
 
-        // Remove player tank from world & arrays (old behaviour)
+        // Remove player tank from world & arrays
         const tankObj = dynamicObjects.find(o => o.id === socket.id && o.type === "tank");
         if (tankObj) {
             world.DestroyBody(tankObj.body);
             dynamicObjects = dynamicObjects.filter(o => o.id !== socket.id);
         }
         delete playerTanks[socket.id];
+
+        checkForGameOver("player disconnected");
     });
 });
 
@@ -474,6 +478,44 @@ function startGame() {
         }))
     });
 
+}
+
+// Functiin to check if game is over 
+function checkForGameOver(reason = "tank eliminated") {
+    if (!gameStarted) return;   // avoid firing twice
+
+    // Find alive tank objects
+    const aliveTanks = dynamicObjects.filter(o => o.type === "tank");
+
+    // If 0 or 1 tanks left, match is over
+    if (aliveTanks.length <= 1) {
+
+        let winnerId = aliveTanks[0] ? aliveTanks[0].id : null;
+
+        // Look up nickname for winner
+        let winnerEntry = lobby.find(p => p.id === winnerId);
+        let winnerName = winnerEntry ? winnerEntry.nickname : "No winner";
+
+        console.log("GAME OVER - Winner:", winnerName);
+
+        // Tell all clients to show Game Over screen
+        io.emit("gameOver", {
+            winnerId: winnerId,
+            winnerName: winnerName,
+            reason: reason
+        });
+
+        // Cleanup world tanks
+        dynamicObjects = dynamicObjects.filter(o => o.type !== "tank");
+        Object.values(playerTanks).forEach(t => {
+            if (t.body) world.DestroyBody(t.body);
+        });
+        playerTanks = {};
+
+        // Reset match
+        gameStarted = false;
+        lobby = [];
+    }
 }
 
 /*
