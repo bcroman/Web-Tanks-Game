@@ -1,6 +1,6 @@
 /*
 Server Configuration
-*/ 
+*/
 'use strict';
 const express = require('express');
 const app = express();
@@ -11,7 +11,7 @@ const fs = require("fs");
 
 /*
 Box2D Valiables
-*/ 
+*/
 let b2Vec2 = Box2D.Common.Math.b2Vec2;
 let b2AABB = Box2D.Collision.b2AABB;
 let b2BodyDef = Box2D.Dynamics.b2BodyDef;
@@ -27,7 +27,7 @@ let b3EdgeShape = Box2D.Collision.Shapes.b2EdgeShape;
 
 /*
 Game Variables
-*/ 
+*/
 let world;
 const SCALE = 30;
 const WIDTH = 1200;
@@ -77,7 +77,7 @@ function loadMap(mapNumber) {
 
 /*
 Create Object Functions
-*/ 
+*/
 
 // Function to create a static box
 function createStaticBox(x, y, width, height, id) {
@@ -139,18 +139,18 @@ function createTank(x, y, width, height, id) {
 // Function to create a dynamic circle
 function createBullet(x, y, radius, id, angleRad, speed) {
     let fixDef = new b2FixtureDef();
-    fixDef.density     = 0.2;
-    fixDef.friction    = 0;
+    fixDef.density = 0.2;
+    fixDef.friction = 0;
     fixDef.restitution = 0.1;
 
     let bodyDef = new b2BodyDef();
-    bodyDef.type   = b2Body.b2_dynamicBody;
+    bodyDef.type = b2Body.b2_dynamicBody;
     bodyDef.bullet = true; // continuous collision detection
     bodyDef.position.Set(x / SCALE, y / SCALE);
 
     fixDef.shape = new b2CircleShape(radius / SCALE);
 
-    let fix  = world.CreateBody(bodyDef).CreateFixture(fixDef);
+    let fix = world.CreateBody(bodyDef).CreateFixture(fixDef);
     let body = fix.GetBody();
 
     body.SetUserData({ id: id, type: "bullet" });
@@ -205,7 +205,7 @@ function handleMovement(playerId, input) {
     if (input.aimDown) tankObj.turretAngle += 2;
 
     // Turret Angles 
-    if (tankObj.turretAngle < 10) tankObj.turretAngle = 10; 
+    if (tankObj.turretAngle < 10) tankObj.turretAngle = 10;
     if (tankObj.turretAngle > 170) tankObj.turretAngle = 170;
 }
 
@@ -215,8 +215,8 @@ function fireBullet(playerId) {
     if (!tank) return;
 
     const angleDeg = tank.turretAngle;
-    const angleRad = (angleDeg + 180)* Math.PI / 180;
-    const power    = 20;
+    const angleRad = (angleDeg + 180) * Math.PI / 180;
+    const power = 20;
 
     // Tank body center (world coordinates in pixels)
     const tankX = tank.body.GetPosition().x * SCALE;
@@ -374,7 +374,7 @@ function init() {
     world = new b2World(new b2Vec2(0, 10), true);
 
     // Call Collision Handler
-    setupContactListener(); 
+    setupContactListener();
 
     // Map Loading
     let mapNumber = Math.floor(Math.random() * 3) + 1; // random map 1–3
@@ -414,10 +414,33 @@ io.on("connection", socket => {
         }
     });
 
+    // Receive Input from Player
+    socket.on("input", data => {
+        handleMovement(socket.id, data);
+    });
+
+    // Handle Firing Bullets From Players
+    socket.on("fire", () => {
+        fireBullet(socket.id);
+    });
+
     // Remove from lobby on disconnect
     socket.on("disconnect", () => {
+        console.log("Disconnected:", socket.id);
+
+        // Remove from lobby if still waiting
         lobby = lobby.filter(p => p.id !== socket.id);
-        if (!gameStarted) io.emit("lobbyUpdate", lobby, requiredPlayers);
+        if (!gameStarted) {
+            io.emit("lobbyUpdate", lobby, requiredPlayers);
+        }
+
+        // Remove player tank from world & arrays (old behaviour)
+        const tankObj = dynamicObjects.find(o => o.id === socket.id && o.type === "tank");
+        if (tankObj) {
+            world.DestroyBody(tankObj.body);
+            dynamicObjects = dynamicObjects.filter(o => o.id !== socket.id);
+        }
+        delete playerTanks[socket.id];
     });
 });
 
@@ -450,6 +473,7 @@ function startGame() {
             hp: o.hp
         }))
     });
+
 }
 
 /*
