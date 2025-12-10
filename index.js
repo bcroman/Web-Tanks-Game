@@ -44,6 +44,10 @@ let bulletsToDelete = [];
 let staticObjects = [];
 let dynamicObjects = [];
 
+const requiredPlayers = 2;   // Change this for larger matches
+let lobby = [];              // { id, nickname }
+let gameStarted = false;
+
 /*
 Map Loading Function
 */
@@ -388,60 +392,71 @@ app.use('/js', express.static(__dirname + '/public/js'));
 app.use('/css', express.static(__dirname + '/public/css'));
 app.use('/assets', express.static(__dirname + '/public/assets'));
 
-// Start the server on Port: 8000
-http.listen(8000, () => {
-    console.log("Server running on http://localhost:8000");
+io.on("connection", socket => {
 
-    io.on("connection", socket => {
-        console.log("Client connected:", socket.id);
+    console.log("Client connected:", socket.id);
 
-        //Spawn Tank When Player Joins
-        let spawn = tankSpawns[nextSpawnIndex % tankSpawns.length];
-        nextSpawnIndex++;
-        
-        let tank = createTank(spawn.x, spawn.y, 60, 30, socket.id);
-        playerTanks[socket.id] = tank;
+    socket.on("joinLobby", nickname => {
 
+        if (gameStarted) {
+            socket.emit("lobbyFull", "Game already in progress.");
+            return;
+        }
 
-        // Send object list
-        setTimeout(() => {
-            io.emit("worldInit", {
-                static: staticObjects,
-                dynamic: dynamicObjects.map(obj => ({
-                    id: obj.id,
-                    width: obj.width,
-                    height: obj.height,
-                    radius: obj.radius ?? null,
-                    type: obj.type,
-                    turretAngle: obj.turretAngle,
-                    hp: obj.hp
-                    }))
-            });
-        }, 100);
+        lobby.push({ id: socket.id, nickname });
 
-        // Receive Input from Player
-        socket.on("input", data => {
-            handleMovement(socket.id, data);
-        });
+        socket.emit("lobbyJoined", lobby, requiredPlayers);
+        io.emit("lobbyUpdate", lobby, requiredPlayers);
 
-        // Handle Firing Bullets From Player
-        socket.on("fire", () => {
-            fireBullet(socket.id);
-        });
+        // Start when lobby full
+        if (lobby.length >= requiredPlayers) {
+            startGame();
+        }
+    });
 
-        // Log Disconnection
-        socket.on("disconnect", () => {
-            console.log("Disconnected:", socket.id);
-
-            // Remove player tank from world & arrays
-            const tankObj = dynamicObjects.find(o => o.id === socket.id && o.type === "tank");
-            if (tankObj) {
-                world.DestroyBody(tankObj.body);
-                dynamicObjects = dynamicObjects.filter(o => o.id !== socket.id);
-            }
-            delete playerTanks[socket.id];
-        });
+    // Remove from lobby on disconnect
+    socket.on("disconnect", () => {
+        lobby = lobby.filter(p => p.id !== socket.id);
+        if (!gameStarted) io.emit("lobbyUpdate", lobby, requiredPlayers);
     });
 });
 
-init(); // Start the Box2D world
+// Start the server on Port: 8000
+function startGame() {
+    console.log("Game starting...");
+    gameStarted = true;
+
+    io.emit("startGame");
+
+    // Spawn tanks for ALL lobby players
+    lobby.forEach(p => {
+        let spawn = tankSpawns[nextSpawnIndex % tankSpawns.length];
+        nextSpawnIndex++;
+
+        let tank = createTank(spawn.x, spawn.y, 60, 30, p.id);
+        playerTanks[p.id] = tank;
+    });
+
+    // Send full world data
+    io.emit("worldInit", {
+        static: staticObjects,
+        dynamic: dynamicObjects.map(o => ({
+            id: o.id,
+            width: o.width,
+            height: o.height,
+            radius: o.radius ?? null,
+            type: o.type,
+            turretAngle: o.turretAngle,
+            hp: o.hp
+        }))
+    });
+}
+
+/*
+Start the server on Port: 8000
+*/
+http.listen(8000, () => {
+    console.log("Server running on http://localhost:8000");
+});
+
+init(); // Start Box2D world

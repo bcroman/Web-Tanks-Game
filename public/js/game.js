@@ -158,5 +158,8 @@ function draw() {
     requestAnimationFrame(draw);
 }
 
-// Start Render Loop
-draw();
+// Start Game Until Lobby is ready
+function startGame() {
+    console.log("Game starting…");
+    draw();   // begin rendering only after lobby
+}
