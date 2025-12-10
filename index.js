@@ -75,6 +75,29 @@ function loadMap(mapNumber) {
     tankSpawns = mapData.spawns;
 }
 
+// Reset world for new matches
+function resetMapForNewMatch() {
+    // 1. Destroy ALL existing Box2D bodies in the world
+    let body = world.GetBodyList();
+    while (body) {
+        const next = body.GetNext();   // store next before destroying
+        world.DestroyBody(body);
+        body = next;
+    }
+
+    // 2. Reset all server-side state
+    staticObjects = [];
+    dynamicObjects = [];
+    playerTanks = {};
+    bulletsToDelete = [];
+    tankSpawns = [];
+    nextSpawnIndex = 0;
+
+    // 3. Pick and load a NEW random map (this recreates static bodies)
+    const newMap = Math.floor(Math.random() * 3) + 1;
+    loadMap(newMap);
+}
+
 /*
 Create Object Functions
 */
@@ -307,28 +330,32 @@ function handleBulletHitTank(bulletId, tankId) {
 }
 
 // Function to destroy tank
-function destoryTank(tankId) {
-    console.log(`Tank ${tankId} destroyed!`);
-
-    // Find tank
-    let tankObj = dynamicObjects.find(o => o.id === tankId && o.type === "tank");
+function destoryTank(tankObj) {
     if (!tankObj) return;
 
-    // Remove from physics world
-    world.DestroyBody(tankObj.body);
+    console.log(`Tank ${tankObj.id} destroyed`);
 
-    // Remove from dynamicObjects
-    dynamicObjects = dynamicObjects.filter(o => o.id !== tankId);
+    // 1. Remove body from Box2D world
+    try {
+        if (tankObj.body) {
+            world.DestroyBody(tankObj.body);
+        }
+    } catch (e) {
+        console.error("Error destroying tank body:", e);
+    }
 
-    // Remove from player list
-    delete playerTanks[tankId];
+    // 2. Remove tank from dynamicObjects list
+    dynamicObjects = dynamicObjects.filter(o => o.id !== tankObj.id);
 
-    // Notify clients
-    io.emit("tankDestroyed", { id: tankId });
+    // 3. Remove from playerTanks dictionary
+    delete playerTanks[tankObj.id];
 
+    // 4. Notify clients
+    io.emit("tankDestroyed", { id: tankObj.id });
+
+    // 5. Now check for game over
     checkForGameOver("tank eliminated");
 }
-
 /*
 World Update Loop
 */
@@ -377,10 +404,6 @@ function init() {
 
     // Call Collision Handler
     setupContactListener();
-
-    // Map Loading
-    let mapNumber = Math.floor(Math.random() * 3) + 1; // random map 1–3
-    loadMap(mapNumber);
 
     interval = setInterval(update, 1000 / fps);
     update();
@@ -450,12 +473,13 @@ io.on("connection", socket => {
 
 // Start the server on Port: 8000
 function startGame() {
-    console.log("Game starting...");
+    console.log("Starting new match...");
     gameStarted = true;
 
-    io.emit("startGame");
+    // ====== NEW MAP FOR NEW MATCH ======
+    resetMapForNewMatch();    
 
-    // Spawn tanks for ALL lobby players
+    // Spawn players using the *new* tankSpawns loaded by resetMapForNewMatch()
     lobby.forEach(p => {
         let spawn = tankSpawns[nextSpawnIndex % tankSpawns.length];
         nextSpawnIndex++;
@@ -464,7 +488,13 @@ function startGame() {
         playerTanks[p.id] = tank;
     });
 
-    // Send full world data
+    // Let physics settle before sending to clients
+    for (let i = 0; i < 10; i++) {
+        world.Step(1 / fps, 10, 10);
+        world.ClearForces();
+    }
+
+    // Send worldInit to all
     io.emit("worldInit", {
         static: staticObjects,
         dynamic: dynamicObjects.map(o => ({
@@ -478,6 +508,8 @@ function startGame() {
         }))
     });
 
+    // Start the client rendering
+    io.emit("startGame");
 }
 
 // Functiin to check if game is over 
