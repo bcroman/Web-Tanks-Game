@@ -9,29 +9,59 @@
 </head>
 
 <body>
+    <!-- Top Navigation -->
+    <nav id="menuBar">
+        <button class="menuBtn" onclick="showPanel('loginScreen');  location.reload()">Login</button>
+        <button class="menuBtn" onclick="showPanel('aboutScreen')">About</button>
+        <button class="menuBtn" onclick="showPanel('howToPlayScreen')">How to Play</button>
+    </nav>
+
     <h1>Tanks Game</h1>
 
-    <div id="loginScreen">
+    <!-- Login Screen  -->
+    <div id="loginScreen" class="panel">
         <input id="nicknameInput" placeholder="Enter nickname" />
         <button id="joinBtn">Join Game</button>
     </div>
 
-    <div id="lobbyScreen" style="display:none;">
+    <!-- About Screen -->
+    <div id="aboutScreen" class="panel"style="display:none;">
+        <h2>About Game</h2>
+    </div>
+
+    <!-- How to Play Screen -->
+     <div id="howtoScreen" class="panel" style="display:none;">
+        <h2>How to Play Game</h2>
+
+    </div>
+
+    <!-- lobby Screen  -->
+    <div id="lobbyScreen" class="panel" style="display:none;">
         <h2>Lobby</h2>
         <p id="lobbyStatus">Waiting for players...</p>
     </div>
 
-    <div id="gameOverScreen" style="display:none;">
+    <!-- Gane Over Screen  -->
+    <div id="gameOverScreen" class="panel" style="display:none;">
         <div id="winnerText">Winner: </div><br>
         <div id="gameOverReason"></div><br>
         <button onclick="location.reload()">Play Again</button>
     </div>
 
+    <!-- Game Canvas Screen  -->
     <canvas id="gameCanvas" width="1200" height="600" style="display:none;"></canvas>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
+
+        // Panel switching function
+        function showPanel(id) {
+            document.querySelectorAll('.panel').forEach(panel => {
+                panel.style.display = "none";
+            });
+            document.getElementById(id).style.display = "block";
+        }
     </script>
 
     <!-- Client Game Files -->
