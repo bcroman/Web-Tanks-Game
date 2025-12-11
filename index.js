@@ -44,8 +44,8 @@ let bulletsToDelete = [];
 let staticObjects = [];
 let dynamicObjects = [];
 
-const requiredPlayers = 2;   // Change this for larger matches
-let lobby = [];              // { id, nickname }
+const requiredPlayers = 2;  
+let lobby = [];           
 let gameStarted = false;
 
 /*
@@ -80,7 +80,7 @@ function resetMapForNewMatch() {
     // 1. Destroy ALL existing Box2D bodies in the world
     let body = world.GetBodyList();
     while (body) {
-        const next = body.GetNext();   // store next before destroying
+        const next = body.GetNext();
         world.DestroyBody(body);
         body = next;
     }
@@ -93,7 +93,7 @@ function resetMapForNewMatch() {
     tankSpawns = [];
     nextSpawnIndex = 0;
 
-    // 3. Pick and load a NEW random map (this recreates static bodies)
+    // 3. Pick and load a NEW random map
     const newMap = Math.floor(Math.random() * 3) + 1;
     loadMap(newMap);
 }
@@ -168,7 +168,7 @@ function createBullet(x, y, radius, id, angleRad, speed) {
 
     let bodyDef = new b2BodyDef();
     bodyDef.type = b2Body.b2_dynamicBody;
-    bodyDef.bullet = true; // continuous collision detection
+    bodyDef.bullet = true;
     bodyDef.position.Set(x / SCALE, y / SCALE);
 
     fixDef.shape = new b2CircleShape(radius / SCALE);
@@ -209,7 +209,7 @@ function handleMovement(playerId, input) {
 
     let body = tankObj.body;
     let vel = body.GetLinearVelocity();
-    const moveSpeed = 5;
+    const moveSpeed = 6;
 
     // Handle left/right movement
     if (input.left) {
@@ -224,8 +224,8 @@ function handleMovement(playerId, input) {
     body.SetAwake(true);
 
     // Handle Turret Rotation
-    if (input.aimUp) tankObj.turretAngle -= 2;
-    if (input.aimDown) tankObj.turretAngle += 2;
+    if (input.aimUp) tankObj.turretAngle -= 3;
+    if (input.aimDown) tankObj.turretAngle += 3;
 
     // Turret Angles 
     if (tankObj.turretAngle < 10) tankObj.turretAngle = 10;
@@ -239,7 +239,7 @@ function fireBullet(playerId) {
 
     const angleDeg = tank.turretAngle;
     const angleRad = (angleDeg + 180) * Math.PI / 180;
-    const power = 20;
+    const power = 17;
 
     // Tank body center (world coordinates in pixels)
     const tankX = tank.body.GetPosition().x * SCALE;
@@ -354,7 +354,7 @@ function destoryTank(tankObj) {
     io.emit("tankDestroyed", { id: tankObj.id });
 
     // 5. Now check for game over
-    checkForGameOver("tank eliminated");
+    checkForGameOver("Tank Eliminated");
 }
 /*
 World Update Loop
@@ -368,7 +368,7 @@ function update() {
 
     // Remove bullets after 5 seconds
     bulletsToDelete = bulletsToDelete.filter(entry => {
-        if (now - entry.time >= 5000) {
+        if (now - entry.time >= 3000) {
             let bulletObj = dynamicObjects.find(o => o.id === entry.id && o.type === "bullet");
             if (bulletObj) {
                 world.DestroyBody(bulletObj.body);
@@ -467,7 +467,7 @@ io.on("connection", socket => {
         }
         delete playerTanks[socket.id];
 
-        checkForGameOver("player disconnected");
+        checkForGameOver("Player Disconnected!");
     });
 });
 
@@ -526,7 +526,7 @@ function checkForGameOver(reason = "tank eliminated") {
 
         // Look up nickname for winner
         let winnerEntry = lobby.find(p => p.id === winnerId);
-        let winnerName = winnerEntry ? winnerEntry.nickname : "No winner";
+        let winnerName = winnerEntry ? winnerEntry.nickname : "No Winner";
 
         console.log("GAME OVER - Winner:", winnerName);
 

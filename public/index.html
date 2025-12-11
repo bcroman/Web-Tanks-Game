@@ -19,19 +19,19 @@
     <h1>Tanks Game</h1>
 
     <!-- Login Screen  -->
-    <div id="loginScreen" style="display:block;">
-        <input id="nicknameInput" placeholder="Enter nickname" />
+    <div id="loginScreen" style="display:block;" class="panel">
+        <input id="nicknameInput" placeholder="Enter Nickname" /><br>
         <button id="joinBtn">Join Game</button>
     </div>
 
     <!-- lobby Screen  -->
-    <div id="lobbyScreen" style="display:none;">
+    <div id="lobbyScreen" style="display:none;" class="panel">
         <h2>Lobby</h2>
         <p id="lobbyStatus">Waiting for players...</p>
     </div>
 
     <!-- Gane Over Screen  -->
-    <div id="gameOverScreen"style="display:none;">
+    <div id="gameOverScreen"style="display:none;" class="panel">
         <div id="winnerText">Winner: </div><br>
         <div id="gameOverReason"></div><br>
         <button onclick="location.reload()">Play Again</button>

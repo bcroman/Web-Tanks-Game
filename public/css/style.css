@@ -1,11 +1,96 @@
+/*
+Overall Styling
+*/
 body {
   margin: 0;
   padding: 0;
   border: 0;
-  background-color: grey;
+  background: #1a1a1a;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
 }
 
-/* Nav Bar */
+h1 {
+  margin-top: 20px;
+  font-size: 36px;
+  color: #00c8ff;
+}
+
+.content {
+  text-align: center;
+}
+
+/* 
+Section Designs
+*/
+.panel {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  top: 20%;
+  left: 50%;
+
+  width: 350px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.75);
+  border: 2px solid #00c8ff;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 200, 255, 0.4);
+}
+
+.panel h2 {
+  margin-bottom: 10px;
+}
+
+#gameCanvas {
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #111111;
+}
+
+#nicknameInput {
+    width: 80%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+button {
+    padding: 12px 20px;
+    font-size: 14px;
+    background: #00c8ff;
+    border: none;
+    border-radius: 8px;
+    color: black;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #0099cc;
+}
+
+/* Game Over Style */
+#gameOverScreen {
+    background: rgba(0, 0, 0, 0.85);
+}
+
+#winnerText {
+    font-size: 16px;
+    font-weight: bold;
+    color: #00ff90;
+}
+
+#gameOverReason {
+    font-size: 14px;
+    color: #ff6a6a;
+}
+
+/*
+Nav Bar
+*/
 ul {
   list-style-type: none;
   margin: 0;
@@ -17,7 +102,7 @@ ul {
 
 ul li a {
   display: block;
-  color: white;
+  color: #00c8ff;
   padding: 14px 16px;
   text-decoration: none;
   font-size: large;
