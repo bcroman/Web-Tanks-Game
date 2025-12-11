@@ -4,45 +4,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tanks Game</title>
+    <title>Tanks Game - Game</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
-    <!-- Top Navigation -->
-    <nav id="menuBar">
-        <button class="menuBtn" onclick="showPanel('loginScreen'); location.reload()">Login</button>
-        <button class="menuBtn" onclick="showPanel('aboutScreen')">About</button>
-        <button class="menuBtn" onclick="showPanel('howtoScreen')">How to Play</button>
-    </nav>
+    <!-- Nav Bar -->
+    <ul>
+        <li><a href="index.html">Game</a></li>
+        <li><a href="howtoplay.html">How to Play</a></li>
+        <li><a href="about.html">About</a></li>
+    </ul>
 
     <h1>Tanks Game</h1>
 
     <!-- Login Screen  -->
-    <div id="loginScreen" class="panel" style="display:block; opacity:1;">
+    <div id="loginScreen" style="display:block;">
         <input id="nicknameInput" placeholder="Enter nickname" />
         <button id="joinBtn">Join Game</button>
     </div>
 
-    <!-- About Screen -->
-    <div id="aboutScreen" class="panel">
-        <h2>About Game</h2>
-    </div>
-
-    <!-- How to Play Screen -->
-    <div id="howtoScreen" class="panel">
-        <h2>How to Play Game</h2>
-
-    </div>
-
     <!-- lobby Screen  -->
-    <div id="lobbyScreen" class="panel" style="display:none; opacity:1;">
+    <div id="lobbyScreen" style="display:none;">
         <h2>Lobby</h2>
         <p id="lobbyStatus">Waiting for players...</p>
     </div>
 
     <!-- Gane Over Screen  -->
-    <div id="gameOverScreen" class="panel" style="display:none; opacity:1;"">
+    <div id="gameOverScreen"style="display:none;">
         <div id="winnerText">Winner: </div><br>
         <div id="gameOverReason"></div><br>
         <button onclick="location.reload()">Play Again</button>
@@ -54,33 +43,6 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-
-        // Panel switching function WITH FADE EFFECT
-        function showPanel(id) {
-            const panels = document.querySelectorAll('.panel');
-            const newPanel = document.getElementById(id);
-
-            // 1. Fade out all currently visible panels
-            panels.forEach(panel => {
-                if (panel.style.display === "block") {
-                    panel.classList.remove("fade-in");
-                    panel.classList.add("fade-out");
-
-                    // After fade-out ends, hide it
-                    setTimeout(() => {
-                        panel.style.display = "none";
-                    }, 400);
-                }
-            });
-
-            // 2. Fade in the new panel (small delay to allow fade-out first)
-            setTimeout(() => {
-                newPanel.style.display = "block";
-                newPanel.classList.remove("fade-out");
-                newPanel.classList.add("fade-in");
-            }, 400);
-        }
-
     </script>
 
     <!-- Client Game Files -->

@@ -1,22 +1,30 @@
-body{
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background-color: grey;
+body {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background-color: grey;
 }
 
-/* Panel Animations */
-.panel {
-    opacity: 0;
-    display: none;
+/* Nav Bar */
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  background-color: black;
+  display: flex;
+  justify-content: center;
 }
 
-.fade-out {
-    opacity: 0;
-    transition: opacity 0.4s ease;
+ul li a {
+  display: block;
+  color: white;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: large;
 }
 
-.fade-in {
-    opacity: 1;
-    transition: opacity 0.4s ease;
+ul li a:hover {
+  background-color: #111111;
 }
+
+/* Page Switch Animations */
