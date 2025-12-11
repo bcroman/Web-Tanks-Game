@@ -39,7 +39,8 @@ socket.on("dynamicUpdate", (state) => {
                 height: update.height,
                 type: update.type,
                 turretAngle: update.turretAngle,
-                hp: update.hp
+                hp: update.hp,
+                color: update.color
             });
         } else {
             // Update Object
@@ -101,7 +102,7 @@ function drawTank(obj) {
     ctx.save();
     ctx.translate(obj.x, obj.y);
 
-    ctx.fillStyle = "blue";
+    ctx.fillStyle = obj.color || "blue";
     ctx.fillRect(-obj.width / 2, -obj.height / 2, obj.width, obj.height);
 
     ctx.fillStyle = "red"; 
@@ -117,7 +118,7 @@ function drawTank(obj) {
     const canvasAngle = (obj.turretAngle + 180) * Math.PI / 180;
     ctx.rotate(canvasAngle);
 
-    ctx.fillStyle = "blue";
+    ctx.fillStyle = obj.color || "blue";
     ctx.fillRect(0, -5, 40, 10);
 
     ctx.restore();

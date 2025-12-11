@@ -390,7 +390,8 @@ function update() {
         height: obj.height,
         turretAngle: obj.turretAngle,
         type: obj.type,
-        hp: obj.hp
+        hp: obj.hp,
+        color: obj.color
     }));
 
     io.emit("dynamicUpdate", dynState);
@@ -421,14 +422,16 @@ io.on("connection", socket => {
 
     console.log("Client connected:", socket.id);
 
-    socket.on("joinLobby", nickname => {
+    socket.on("joinLobby", data => {
+
+        const { nickname, color } = data;
 
         if (gameStarted) {
             socket.emit("lobbyFull", "Game already in progress.");
             return;
         }
 
-        lobby.push({ id: socket.id, nickname });
+        lobby.push({ id: socket.id, nickname, color});
 
         socket.emit("lobbyJoined", lobby, requiredPlayers);
         io.emit("lobbyUpdate", lobby, requiredPlayers);
@@ -485,6 +488,7 @@ function startGame() {
         nextSpawnIndex++;
 
         let tank = createTank(spawn.x, spawn.y, 60, 30, p.id);
+        tank.color = p.color;
         playerTanks[p.id] = tank;
     });
 
@@ -504,7 +508,8 @@ function startGame() {
             radius: o.radius ?? null,
             type: o.type,
             turretAngle: o.turretAngle,
-            hp: o.hp
+            hp: o.hp,
+            color: o.color
         }))
     });
 

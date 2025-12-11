@@ -8,10 +8,12 @@ if (!socket) {
 // Handle Join button click
 document.getElementById("joinBtn").onclick = () => {
     const nickname = document.getElementById("nicknameInput").value.trim();
+    const color = document.getElementById("selectedColor").value;
+
     if (nickname.length > 0) {
-        socket.emit("joinLobby", nickname);
+        socket.emit("joinLobby", { nickname, color });
     }
-};
+}
 
 // When server confirms lobby join
 socket.on("lobbyJoined", (players, requiredPlayers) => {
