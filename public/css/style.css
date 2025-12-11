@@ -21,6 +21,32 @@ h1 {
   text-align: center;
 }
 
+/* Colour Selection */
+.colorRow {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.colorBtn {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: 0.2s;
+}
+
+.colorBtn:hover {
+    transform: scale(1.1);
+}
+
+.selectedColorBtn {
+    border: 3px solid white;
+    box-shadow: 0 0 10px rgba(255,255,255,0.7);
+}
+
 /* 
 Section Designs
 */

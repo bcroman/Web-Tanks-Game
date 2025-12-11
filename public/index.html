@@ -21,6 +21,18 @@
     <!-- Login Screen  -->
     <div id="loginScreen" style="display:block;" class="panel">
         <input id="nicknameInput" placeholder="Enter Nickname" /><br>
+
+        <h3>Select Tank Color</h3>
+
+        <div class="colorRow">
+            <div class="colorBtn" data-color="#007bff" style="background:#007bff;"></div>
+            <div class="colorBtn" data-color="#ff3b30" style="background:#ff3b30;"></div>
+            <div class="colorBtn" data-color="#28cd41" style="background:#28cd41;"></div>
+            <div class="colorBtn" data-color="#ffcc00" style="background:#ffcc00;"></div>
+        </div>
+
+        <input type="hidden" id="selectedColor" value="#007bff">
+
         <button id="joinBtn">Join Game</button>
     </div>
 
@@ -31,7 +43,7 @@
     </div>
 
     <!-- Gane Over Screen  -->
-    <div id="gameOverScreen"style="display:none;" class="panel">
+    <div id="gameOverScreen" style="display:none;" class="panel">
         <div id="winnerText">Winner: </div><br>
         <div id="gameOverReason"></div><br>
         <button onclick="location.reload()">Play Again</button>
@@ -43,6 +55,28 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
+    </script>
+
+    <!-- Script Colour selection -->
+    <script>
+        // Default selected color
+        let selectedColor = "#007bff";
+
+        // Handle color button selection
+        document.querySelectorAll(".colorBtn").forEach(btn => {
+            btn.addEventListener("click", () => {
+
+                // Update selected color
+                selectedColor = btn.dataset.color;
+                document.getElementById("selectedColor").value = selectedColor;
+
+                // Highlight selected button
+                document.querySelectorAll(".colorBtn").forEach(b => {
+                    b.classList.remove("selectedColorBtn");
+                });
+                btn.classList.add("selectedColorBtn");
+            });
+        });
     </script>
 
     <!-- Client Game Files -->
