@@ -25,6 +25,7 @@ h1 {
 .colorRow {
     display: flex;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 12px;
     margin-bottom: 15px;
 }

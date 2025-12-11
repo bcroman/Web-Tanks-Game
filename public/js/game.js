@@ -102,12 +102,15 @@ function drawTank(obj) {
     ctx.save();
     ctx.translate(obj.x, obj.y);
 
+    // Draw Body
     ctx.fillStyle = obj.color || "blue";
     ctx.fillRect(-obj.width / 2, -obj.height / 2, obj.width, obj.height);
 
+    // Draw Lost Health
     ctx.fillStyle = "red"; 
     ctx.fillRect(-obj.width / 2, -obj.height / 2 - 15, obj.width, 6);
 
+    // Draw Current Health
     ctx.fillStyle = "lime";
     let hpPercent = Math.max(obj.hp, 0) / 100;
     ctx.fillRect(-obj.width / 2, -obj.height / 2 - 15, obj.width * hpPercent, 6);
@@ -118,6 +121,7 @@ function drawTank(obj) {
     const canvasAngle = (obj.turretAngle + 180) * Math.PI / 180;
     ctx.rotate(canvasAngle);
 
+    // Draw Turret
     ctx.fillStyle = obj.color || "blue";
     ctx.fillRect(0, -5, 40, 10);
 
