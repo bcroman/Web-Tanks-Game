@@ -2,7 +2,6 @@ let staticObjects = [];
 let dynamicObjects = [];
 let isRendering = false;
 
-// Camera / zoom system
 let cameraX = 0;
 let cameraY = 0;
 let zoom = 1;
@@ -87,7 +86,7 @@ function drawDynamicBoxes(obj) {
     ctx.save();
     ctx.translate(obj.x, obj.y);
 
-    // Draw tank body
+    // Draw Box
     ctx.fillStyle = "red";
     ctx.fillRect(-obj.width / 2, -obj.height / 2, obj.width, obj.height);
 
@@ -107,7 +106,7 @@ function drawDynamicCircles(obj) {
     ctx.restore();
 }
 
-// Function to Draw Tank with Turret
+// Function to Draw Tank
 function drawTank(obj) {
     ctx.save();
     ctx.translate(obj.x, obj.y);
@@ -117,7 +116,7 @@ function drawTank(obj) {
     ctx.fillRect(-obj.width / 2, -obj.height / 2, obj.width, obj.height);
 
     // Draw Lost Health
-    ctx.fillStyle = "red"; 
+    ctx.fillStyle = "red";
     ctx.fillRect(-obj.width / 2, -obj.height / 2 - 15, obj.width, 6);
 
     // Draw Current Health
@@ -169,7 +168,7 @@ function drawDynamicObjects() {
 socket.on("gameOver", data => {
     winnerId = data.winnerId;
     zoomingToWinner = true;
-    targetZoom = 2.5; 
+    targetZoom = 2.5;
 });
 
 // Function to zoom camera to the winner tank
@@ -193,6 +192,7 @@ function draw() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Set Zoom
     if (zoomingToWinner) {
         updateCamera();
     } else {

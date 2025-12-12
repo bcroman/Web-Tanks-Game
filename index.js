@@ -35,15 +35,18 @@ const HEIGHT = 600;
 let fps = 60;
 let interval;
 
+// Map Variables
 let mapData = null;
 let tankSpawns = [];
 let nextSpawnIndex = 0;
 
+// Obkect Arrays
 let playerTanks = {};
 let bulletsToDelete = [];
 let staticObjects = [];
 let dynamicObjects = [];
 
+// Player Variables
 const requiredPlayers = 2;
 let lobby = [];
 let gameStarted = false;
@@ -52,6 +55,7 @@ let gameStarted = false;
 Map Loading Function
 */
 function loadMap(mapNumber) {
+    // loads Maps
     const filePath = `./maps/map${mapNumber}.json`;
     const raw = fs.readFileSync(filePath);
     mapData = JSON.parse(raw);
@@ -77,7 +81,7 @@ function loadMap(mapNumber) {
 
 // Reset world for new matches
 function resetMapForNewMatch() {
-    // 1. Destroy ALL existing Box2D bodies in the world
+    // Destroy all existing objects
     let body = world.GetBodyList();
     while (body) {
         const next = body.GetNext();
@@ -85,7 +89,7 @@ function resetMapForNewMatch() {
         body = next;
     }
 
-    // 2. Reset all server-side state
+    // Reset all server-side state
     staticObjects = [];
     dynamicObjects = [];
     playerTanks = {};
@@ -93,7 +97,7 @@ function resetMapForNewMatch() {
     tankSpawns = [];
     nextSpawnIndex = 0;
 
-    // 3. Pick and load a NEW random map
+    // Pick and load a random map
     const newMap = Math.floor(Math.random() * 3) + 1;
     loadMap(newMap);
 }
@@ -101,7 +105,6 @@ function resetMapForNewMatch() {
 /*
 Create Object Functions
 */
-
 // Function to create a static box
 function createStaticBox(x, y, width, height, id) {
     let fixDef = new b2FixtureDef();
@@ -249,7 +252,7 @@ function fireBullet(playerId) {
     const pivotX = tankX;
     const pivotY = tankY - (tank.height / 2);
 
-    // Spawn bullet 35px ahead of turret
+    // Spawn bullet ahead of turret
     const spawnX = pivotX + Math.cos(angleRad) * 35;
     const spawnY = pivotY + Math.sin(angleRad) * 35;
 
@@ -311,7 +314,6 @@ function markBulletForDeletion(bulletId) {
 
 // Function to handle bullet hitting a tank
 function handleBulletHitTank(bulletId, tankId) {
-    //console.log("Bullet", bulletId, "hit Tank", tankId);
     markBulletForDeletion(bulletId);
 
     let tankObj = dynamicObjects.find(o => o.id === tankId && o.type === "tank");
@@ -335,7 +337,7 @@ function destoryTank(tankObj) {
 
     console.log(`Tank ${tankObj.id} destroyed`);
 
-    // 1. Remove body from Box2D world
+    // Remove body from world
     try {
         if (tankObj.body) {
             world.DestroyBody(tankObj.body);
@@ -344,16 +346,16 @@ function destoryTank(tankObj) {
         console.error("Error destroying tank body:", e);
     }
 
-    // 2. Remove tank from dynamicObjects list
+    // Remove tank from dynamicObjects list
     dynamicObjects = dynamicObjects.filter(o => o.id !== tankObj.id);
 
-    // 3. Remove from playerTanks dictionary
+    // Remove from playerTanks
     delete playerTanks[tankObj.id];
 
-    // 4. Notify clients
+    // Notify clients
     io.emit("tankDestroyed", { id: tankObj.id });
 
-    // 5. Now check for game over
+    // Check for game over
     checkForGameOver("Tank Eliminated");
 }
 /*
@@ -366,7 +368,7 @@ function update() {
     // Delete bullets that have collided
     let now = Date.now();
 
-    // Remove bullets after 5 seconds
+    // Remove bullets after 3 seconds
     bulletsToDelete = bulletsToDelete.filter(entry => {
         if (now - entry.time >= 3000) {
             let bulletObj = dynamicObjects.find(o => o.id === entry.id && o.type === "bullet");
@@ -426,6 +428,7 @@ io.on("connection", socket => {
 
         const { nickname, color } = data;
 
+        // Check is lobby is full
         if (gameStarted) {
             socket.emit("lobbyFull", "Game already in progress.");
             return;
@@ -479,10 +482,10 @@ function startGame() {
     console.log("Starting new match...");
     gameStarted = true;
 
-    // ====== NEW MAP FOR NEW MATCH ======
+    // reset for new match
     resetMapForNewMatch();
 
-    // Spawn players using the *new* tankSpawns loaded by resetMapForNewMatch()
+    // Spawn New Tank at target positions
     lobby.forEach(p => {
         let spawn = tankSpawns[nextSpawnIndex % tankSpawns.length];
         nextSpawnIndex++;
@@ -517,9 +520,9 @@ function startGame() {
     io.emit("startGame");
 }
 
-// Functiin to check if game is over 
+// Function to check if game is over 
 function checkForGameOver(reason = "tank eliminated") {
-    if (!gameStarted) return;   // avoid firing twice
+    if (!gameStarted) return;
 
     // Find alive tank objects
     const aliveTanks = dynamicObjects.filter(o => o.type === "tank");
@@ -529,13 +532,13 @@ function checkForGameOver(reason = "tank eliminated") {
 
         let winnerId = aliveTanks[0] ? aliveTanks[0].id : null;
 
-        // Look up nickname for winner
+        // Lok for Winner Player
         let winnerEntry = lobby.find(p => p.id === winnerId);
         let winnerName = winnerEntry ? winnerEntry.nickname : "No Winner";
 
         console.log("GAME OVER - Winner:", winnerName);
 
-        // Tell all clients to show Game Over screen
+        // Tell all client to show Game Over screen
         io.emit("gameOver", {
             winnerId: winnerId,
             winnerName: winnerName,
@@ -543,7 +546,6 @@ function checkForGameOver(reason = "tank eliminated") {
         });
 
         // Cleanup world tanks
-        // Delay cleanup so clients can play camera zoom
         setTimeout(() => {
 
             // Remove tanks from physics world

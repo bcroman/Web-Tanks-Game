@@ -1,6 +1,5 @@
 // lobby.js
-
-// Ensure socket exists (created in index.html)
+// Ensure socket exists 
 if (!socket) {
     console.error("Socket not found — ensure index.html creates socket = io();");
 }
@@ -25,7 +24,7 @@ socket.on("lobbyUpdate", (players, requiredPlayers) => {
     updateLobby(players, requiredPlayers);
 });
 
-// Start game when server says so
+// Start game
 socket.on("startGame", () => {
     document.getElementById("lobbyScreen").style.display = "none";
     document.getElementById("gameCanvas").style.display = "block";
@@ -43,8 +42,6 @@ socket.on("gameOver", (data) => {
     updateGameOverScreen(winnerName, data.reason);
 });
 
-
-
 // Update UI Elements
 function showLobby(players, requiredPlayers) {
     document.getElementById("loginScreen").style.display = "none";
@@ -60,10 +57,12 @@ function updateLobby(players, requiredPlayers) {
 
 function updateGameOverScreen(winnerName, reason) {
 
+    // Allow Camera Zoom
     if (typeof stopGameRendering === "function") {
         setTimeout(stopGameRendering, 2000); // allow zoom to finish
     }
 
+    // Delay Game Over Screen
     setTimeout(() => {
         document.getElementById("gameCanvas").style.display = "none";
 
@@ -74,6 +73,6 @@ function updateGameOverScreen(winnerName, reason) {
             reason ? `Reason: ${reason}` : "";
 
         document.getElementById("gameOverScreen").style.display = "block";
-    }, 2000); // sync with camera zoom
+    }, 2000);
 
 }

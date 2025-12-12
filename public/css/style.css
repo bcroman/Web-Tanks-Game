@@ -23,29 +23,29 @@ h1 {
 
 /* Colour Selection */
 .colorRow {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 15px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 15px;
 }
 
 .colorBtn {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    cursor: pointer;
-    border: 3px solid transparent;
-    transition: 0.2s;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: 0.2s;
 }
 
 .colorBtn:hover {
-    transform: scale(1.1);
+  transform: scale(1.1);
 }
 
 .selectedColorBtn {
-    border: 3px solid white;
-    box-shadow: 0 0 10px rgba(255,255,255,0.7);
+  border: 3px solid white;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
 }
 
 /* 
@@ -69,6 +69,7 @@ Section Designs
   margin-bottom: 10px;
 }
 
+/* Section Colour and Center */
 #gameCanvas {
   margin-left: auto;
   margin-right: auto;
@@ -76,43 +77,45 @@ Section Designs
 }
 
 #nicknameInput {
-    width: 80%;
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    margin-bottom: 15px;
-    font-size: 14px;
+  width: 80%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  margin-bottom: 15px;
+  font-size: 14px;
 }
 
 button {
-    padding: 12px 20px;
-    font-size: 14px;
-    background: #00c8ff;
-    border: none;
-    border-radius: 8px;
-    color: black;
-    cursor: pointer;
-    transition: 0.2s;
+  padding: 12px 20px;
+  font-size: 14px;
+  background: #00c8ff;
+  border: none;
+  border-radius: 8px;
+  color: black;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
 button:hover {
-    background: #0099cc;
+  background: #0099cc;
 }
 
-/* Game Over Style */
+/*
+Game Over Style
+*/
 #gameOverScreen {
-    background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.85);
 }
 
 #winnerText {
-    font-size: 16px;
-    font-weight: bold;
-    color: #00ff90;
+  font-size: 16px;
+  font-weight: bold;
+  color: #00ff90;
 }
 
 #gameOverReason {
-    font-size: 14px;
-    color: #ff6a6a;
+  font-size: 14px;
+  color: #ff6a6a;
 }
 
 /*
@@ -138,5 +141,3 @@ ul li a {
 ul li a:hover {
   background-color: #111111;
 }
-
-/* Page Switch Animations */
