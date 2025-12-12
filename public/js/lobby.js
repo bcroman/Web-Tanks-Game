@@ -59,19 +59,21 @@ function updateLobby(players, requiredPlayers) {
 }
 
 function updateGameOverScreen(winnerName, reason) {
-    const winnerText = document.getElementById("winnerText");
-    const reasonText = document.getElementById("gameOverReason");
 
-    // Update main winner message
-    winnerText.innerText = `Winner: ${winnerName}`;
-
-    // Optional reason text (HP death, disconnect, etc.)
-    if (reasonText) {
-        reasonText.innerText = reason ? `Reason: ${reason}` : "";
+    if (typeof stopGameRendering === "function") {
+        setTimeout(stopGameRendering, 2000); // allow zoom to finish
     }
 
-    // Show screen
-    document.getElementById("gameCanvas").style.display = "none";
-    document.getElementById("gameOverScreen").style.display = "block";
+    setTimeout(() => {
+        document.getElementById("gameCanvas").style.display = "none";
+
+        document.getElementById("winnerText").innerText =
+            `Winner: ${winnerName}`;
+
+        document.getElementById("gameOverReason").innerText =
+            reason ? `Reason: ${reason}` : "";
+
+        document.getElementById("gameOverScreen").style.display = "block";
+    }, 2000); // sync with camera zoom
 
 }

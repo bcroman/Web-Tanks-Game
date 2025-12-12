@@ -1,5 +1,15 @@
 let staticObjects = [];
 let dynamicObjects = [];
+let isRendering = false;
+
+// Camera / zoom system
+let cameraX = 0;
+let cameraY = 0;
+let zoom = 1;
+let targetZoom = 1;
+
+let zoomingToWinner = false;
+let winnerId = null;
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -155,16 +165,65 @@ function drawDynamicObjects() {
     });
 }
 
+// Function to active the zoom camera
+socket.on("gameOver", data => {
+    winnerId = data.winnerId;
+    zoomingToWinner = true;
+    targetZoom = 2.5; 
+});
+
+// Function to zoom camera to the winner tank
+function updateCamera() {
+    if (!zoomingToWinner) return;
+
+    const winner = dynamicObjects.find(o => o.id === winnerId);
+    if (!winner) return;
+
+    // Smooth zoom
+    zoom += (targetZoom - zoom) * 0.03;
+
+    // Center on winner
+    cameraX = winner.x - canvas.width / (2 * zoom);
+    cameraY = winner.y - canvas.height / (2 * zoom);
+}
+
 // Function to Draw Objects
 function draw() {
+    if (!isRendering) return;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (zoomingToWinner) {
+        updateCamera();
+    } else {
+        cameraX = 0;
+        cameraY = 0;
+        zoom = 1;
+    }
+
+    ctx.save();
+    ctx.scale(zoom, zoom);
+    ctx.translate(-cameraX, -cameraY);
+
     drawStaticObjects();
     drawDynamicObjects();
+
+    ctx.restore();
+
     requestAnimationFrame(draw);
 }
 
 // Start Game Until Lobby is ready
 function startGame() {
-    console.log("Game starting…");
-    draw();   // begin rendering only after lobby
+    console.log("Game Starting!")
+    isRendering = true;
+    zoomingToWinner = false;
+    zoom = 1;
+    targetZoom = 1;
+    draw();
+}
+
+// Function to stop all rendering
+function stopGameRendering() {
+    isRendering = false;
 }

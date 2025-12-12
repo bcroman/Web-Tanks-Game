@@ -44,8 +44,8 @@ let bulletsToDelete = [];
 let staticObjects = [];
 let dynamicObjects = [];
 
-const requiredPlayers = 2;  
-let lobby = [];           
+const requiredPlayers = 2;
+let lobby = [];
 let gameStarted = false;
 
 /*
@@ -431,7 +431,7 @@ io.on("connection", socket => {
             return;
         }
 
-        lobby.push({ id: socket.id, nickname, color});
+        lobby.push({ id: socket.id, nickname, color });
 
         socket.emit("lobbyJoined", lobby, requiredPlayers);
         io.emit("lobbyUpdate", lobby, requiredPlayers);
@@ -480,7 +480,7 @@ function startGame() {
     gameStarted = true;
 
     // ====== NEW MAP FOR NEW MATCH ======
-    resetMapForNewMatch();    
+    resetMapForNewMatch();
 
     // Spawn players using the *new* tankSpawns loaded by resetMapForNewMatch()
     lobby.forEach(p => {
@@ -543,11 +543,23 @@ function checkForGameOver(reason = "tank eliminated") {
         });
 
         // Cleanup world tanks
-        dynamicObjects = dynamicObjects.filter(o => o.type !== "tank");
-        Object.values(playerTanks).forEach(t => {
-            if (t.body) world.DestroyBody(t.body);
-        });
-        playerTanks = {};
+        // Delay cleanup so clients can play camera zoom
+        setTimeout(() => {
+
+            // Remove tanks from physics world
+            Object.values(playerTanks).forEach(t => {
+                if (t.body) {
+                    world.DestroyBody(t.body);
+                }
+            });
+
+            // Remove tanks from server state
+            dynamicObjects = dynamicObjects.filter(o => o.type !== "tank");
+            playerTanks = {};
+
+            console.log("Server cleanup complete after game over.");
+
+        }, 2000); // match with camera zoom time
 
         // Reset match
         gameStarted = false;
